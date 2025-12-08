@@ -10,11 +10,32 @@ interface Restaurant {
   id: string;
   name: string;
   area: string;
+  cuisine?: string | null;
   description: string | null;
   offer: {
     id: string;
     offerText: string;
   } | null;
+}
+
+interface RecentlyVisited {
+  id: string;
+  name: string;
+  area: string;
+  cuisine?: string | null;
+  offer: { offerText: string; isActive: boolean } | null;
+  visitedAt: string;
+}
+
+interface Recommendation {
+  id: string;
+  name: string;
+  area: string;
+  cuisine?: string | null;
+  offer: { offerText: string; isActive: boolean } | null;
+  score: number;
+  isFavorite: boolean;
+  recentlyVisited: boolean;
 }
 
 interface GroupedRestaurants {
@@ -40,6 +61,9 @@ export default function RestaurantsPage() {
   const [selectedArea, setSelectedArea] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -53,10 +77,12 @@ export default function RestaurantsPage() {
           return;
         }
 
-        // Fetch restaurants and favorites in parallel
-        const [restaurantsRes, favoritesRes] = await Promise.all([
+        // Fetch restaurants, favorites, recently visited, and recommendations in parallel
+        const [restaurantsRes, favoritesRes, visitHistoryRes, recommendationsRes] = await Promise.all([
           fetch("/api/restaurants"),
           fetch("/api/favorites"),
+          fetch("/api/visit-history"),
+          fetch("/api/recommendations"),
         ]);
 
         const restaurantsData = await restaurantsRes.json();
@@ -72,6 +98,22 @@ export default function RestaurantsPage() {
             favoritesData.favorites?.map((f: { restaurantId: string }) => f.restaurantId) || []
           );
           setFavorites(favIds);
+        }
+
+        // Set recently visited
+        if (visitHistoryRes.ok) {
+          const visitData = await visitHistoryRes.json();
+          setRecentlyVisited(visitData.recentlyVisited || []);
+        }
+
+        // Set recommendations
+        if (recommendationsRes.ok) {
+          const recData = await recommendationsRes.json();
+          setRecommendations(recData.recommendations || []);
+          // Show recommendations section if user has some history
+          if (recData.recommendations?.length > 0 && recData.preferences?.totalVisits > 0) {
+            setShowRecommendations(true);
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
@@ -174,6 +216,76 @@ export default function RestaurantsPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
           {t("restaurants", "browseTitle")}
         </h1>
+
+        {/* Recommendations Section */}
+        {showRecommendations && recommendations.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm mr-2">
+                {language === "bn" ? "🎯 আপনার জন্য" : "🎯 For You"}
+              </span>
+            </h2>
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-4" style={{ minWidth: "max-content" }}>
+                {recommendations.slice(0, 6).map((restaurant) => (
+                  <Link
+                    key={restaurant.id}
+                    href={`/restaurants/${restaurant.id}`}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow w-64 flex-shrink-0"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-gray-800">
+                        {restaurant.name}
+                      </h3>
+                      {restaurant.isFavorite && <span className="text-lg">❤️</span>}
+                    </div>
+                    <p className="text-sm text-gray-500 mb-2">📍 {restaurant.area}</p>
+                    {restaurant.cuisine && (
+                      <p className="text-xs text-purple-600 mb-2">🍽️ {restaurant.cuisine}</p>
+                    )}
+                    {restaurant.offer && restaurant.offer.isActive && (
+                      <div className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs">
+                        🎁 {restaurant.offer.offerText}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Recently Visited Section */}
+        {recentlyVisited.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+              <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm mr-2">
+                {language === "bn" ? "🕐 সম্প্রতি দেখেছেন" : "🕐 Recently Visited"}
+              </span>
+            </h2>
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-4" style={{ minWidth: "max-content" }}>
+                {recentlyVisited.slice(0, 6).map((restaurant) => (
+                  <Link
+                    key={restaurant.id}
+                    href={`/restaurants/${restaurant.id}`}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow w-56 flex-shrink-0"
+                  >
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      {restaurant.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-2">📍 {restaurant.area}</p>
+                    {restaurant.offer && restaurant.offer.isActive && (
+                      <div className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs">
+                        🎁 {restaurant.offer.offerText}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Area Selection Filter */}
         <div className="mb-6 overflow-x-auto">

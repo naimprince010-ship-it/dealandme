@@ -33,9 +33,11 @@ model User {
   referredBy   String?  @map("referred_by")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  coupons   Coupon[]
-  favorites Favorite[]
-  referrals Referral[] @relation("ReferrerRelation")
+  coupons           Coupon[]
+  favorites         Favorite[]
+  referrals         Referral[] @relation("ReferrerRelation")
+  visitHistory      VisitHistory[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -45,6 +47,7 @@ model Restaurant {
   id              String   @id @default(uuid())
   name            String
   area            String
+  cuisine         String?
   description     String?
   username        String   @unique
   passwordHash    String   @map("password_hash")
@@ -54,10 +57,11 @@ model Restaurant {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  offer       Offer?
-  coupons     Coupon[]
-  favorites   Favorite[]
-  commissions Commission[]
+  offer        Offer?
+  coupons      Coupon[]
+  favorites    Favorite[]
+  commissions  Commission[]
+  visitHistory VisitHistory[]
 
   @@index([area, isActive])
   @@index([offPeakBoost, isActive])
@@ -187,4 +191,34 @@ model Commission {
   @@index([restaurantId, billingMonth])
   @@index([isPaid])
   @@map("commissions")
+}
+
+// Visit history for recently visited restaurants
+model VisitHistory {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  restaurantId String   @map("restaurant_id")
+  visitedAt    DateTime @default(now()) @map("visited_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, visitedAt])
+  @@index([restaurantId])
+  @@map("visit_history")
+}
+
+// Push notification subscriptions for web push
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

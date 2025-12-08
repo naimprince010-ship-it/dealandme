@@ -67,6 +67,15 @@ export default function RestaurantDetailPage() {
         }
 
         setRestaurant(data.restaurant);
+
+        // Record visit to this restaurant (fire and forget)
+        fetch("/api/visit-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ restaurantId: id }),
+        }).catch(() => {
+          // Silently ignore errors for visit tracking
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
