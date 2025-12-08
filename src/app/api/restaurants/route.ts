@@ -3,18 +3,17 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const restaurants = await prisma.restaurant.findMany({
+    // First get all active restaurants with their offers
+    const allRestaurants = await prisma.restaurant.findMany({
       where: {
         isActive: true,
-        offer: {
-          isActive: true,
-        },
       },
       include: {
         offer: {
           select: {
             id: true,
             offerText: true,
+            isActive: true,
           },
         },
       },
@@ -23,6 +22,14 @@ export async function GET() {
         { name: "asc" },
       ],
     });
+
+    // Filter to only include restaurants with active offers
+    const restaurants = allRestaurants.filter(
+      (r) => r.offer && r.offer.isActive
+    ).map((r) => ({
+      ...r,
+      offer: r.offer ? { id: r.offer.id, offerText: r.offer.offerText } : null,
+    }));
 
     // Group by area
     const groupedByArea: Record<string, typeof restaurants> = {};
