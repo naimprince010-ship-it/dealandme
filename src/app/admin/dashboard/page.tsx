@@ -10,10 +10,30 @@ interface Admin {
   type: string;
 }
 
+interface Stats {
+  customers: {
+    total: number;
+  };
+  restaurants: {
+    total: number;
+    active: number;
+  };
+  offers: {
+    active: number;
+  };
+  coupons: {
+    total: number;
+    redeemed: number;
+    expired: number;
+  };
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [admin, setAdmin] = useState<Admin | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,6 +56,26 @@ export default function AdminDashboard() {
 
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/admin/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    if (!loading && admin) {
+      fetchStats();
+    }
+  }, [loading, admin]);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -71,73 +111,100 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <p className="text-sm text-gray-500 mb-1">Total Customers</p>
-            <p className="text-3xl font-bold text-gray-900">-</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {statsLoading ? "-" : stats?.customers.total ?? 0}
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <p className="text-sm text-gray-500 mb-1">Total Restaurants</p>
-            <p className="text-3xl font-bold text-gray-900">-</p>
+            <p className="text-sm text-gray-500 mb-1">Restaurants</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {statsLoading ? "-" : stats?.restaurants.total ?? 0}
+            </p>
+            <p className="text-sm text-green-600 mt-1">
+              {statsLoading ? "" : `${stats?.restaurants.active ?? 0} active`}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Active Offers</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {statsLoading ? "-" : stats?.offers.active ?? 0}
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <p className="text-sm text-gray-500 mb-1">Coupons Generated</p>
-            <p className="text-3xl font-bold text-gray-900">-</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <p className="text-sm text-gray-500 mb-1">Coupons Used</p>
-            <p className="text-3xl font-bold text-gray-900">-</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {statsLoading ? "-" : stats?.coupons.total ?? 0}
+            </p>
           </div>
         </div>
 
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Coupons Redeemed</p>
+            <p className="text-3xl font-bold text-green-600">
+              {statsLoading ? "-" : stats?.coupons.redeemed ?? 0}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Coupons Expired</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {statsLoading ? "-" : stats?.coupons.expired ?? 0}
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <p className="text-sm text-gray-500 mb-1">Unused Coupons</p>
+            <p className="text-3xl font-bold text-blue-600">
+              {statsLoading
+                ? "-"
+                : (stats?.coupons.total ?? 0) -
+                  (stats?.coupons.redeemed ?? 0) -
+                  (stats?.coupons.expired ?? 0)}
+            </p>
+          </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid md:grid-cols-3 gap-6">
           <Link
             href="/admin/restaurants"
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-indigo-500"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Manage Restaurants
             </h3>
             <p className="text-gray-600">
-              Add, edit, or remove restaurant partners
+              Add, edit, or manage restaurant partners and their offers
             </p>
           </Link>
 
           <Link
             href="/admin/coupons"
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-green-500"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              View Coupons
+              Coupon Monitoring
             </h3>
             <p className="text-gray-600">
-              Browse all coupons with filters
+              View all coupons with filters and search
             </p>
           </Link>
 
           <Link
-            href="/admin/stats"
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+            href="/admin/restaurants/new"
+            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-purple-500"
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Statistics
+              Add Restaurant
             </h3>
             <p className="text-gray-600">
-              View detailed platform statistics
+              Create a new restaurant partner account
             </p>
           </Link>
-        </div>
-
-        <div className="mt-8 bg-yellow-50 p-6 rounded-xl">
-          <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-            MVP Note
-          </h3>
-          <p className="text-yellow-700">
-            This is the Milestone 1 foundation. Full admin functionality will be
-            implemented in Milestone 4.
-          </p>
         </div>
       </main>
     </div>
