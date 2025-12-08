@@ -40,6 +40,7 @@ export default function EditOfferPage() {
   const { language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [offPeakBoost, setOffPeakBoost] = useState(false);
@@ -147,6 +148,57 @@ export default function EditOfferPage() {
       // Revert on error
       setOffPeakBoost(!newValue);
       setOffPeakStatus(getOffPeakStatus(!newValue));
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError(language === "bn" ? "শুধুমাত্র ছবি ফাইল অনুমোদিত" : "Only image files are allowed");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError(language === "bn" ? "ফাইল সাইজ ৫MB এর কম হতে হবে" : "File size must be less than 5MB");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/restaurant/offer/upload-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      // Set the uploaded URL to form data
+      setFormData((prev) => ({
+        ...prev,
+        photoUrl: data.url,
+      }));
+
+      setSuccess(language === "bn" ? "ছবি আপলোড সফল!" : "Image uploaded successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setUploading(false);
+      // Reset file input
+      e.target.value = "";
     }
   };
 
@@ -412,23 +464,86 @@ export default function EditOfferPage() {
                   {language === "bn" ? "ছবি" : "Photo"}
                 </h2>
 
-                <div>
+                {/* File Upload */}
+                <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === "bn" ? "ছবির URL (ঐচ্ছিক)" : "Photo URL (optional)"}
+                    {language === "bn" ? "ছবি আপলোড করুন" : "Upload Photo"}
                   </label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex-1 cursor-pointer">
+                      <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        uploading ? "border-indigo-300 bg-indigo-50" : "border-gray-300 hover:border-indigo-400"
+                      }`}>
+                        {uploading ? (
+                          <div className="flex flex-col items-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+                            <p className="text-sm text-indigo-600">
+                              {language === "bn" ? "আপলোড হচ্ছে..." : "Uploading..."}
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-3xl mb-2">📷</div>
+                            <p className="text-sm text-gray-600">
+                              {language === "bn"
+                                ? "ছবি নির্বাচন করতে ক্লিক করুন"
+                                : "Click to select an image"}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {language === "bn" ? "সর্বোচ্চ ৫MB" : "Max 5MB"}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Current Photo Preview */}
+                {formData.photoUrl && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      {language === "bn" ? "বর্তমান ছবি" : "Current Photo"}
+                    </p>
+                    <div className="relative inline-block">
+                      <img
+                        src={formData.photoUrl}
+                        alt="Current offer"
+                        className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, photoUrl: "" }))}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* URL Input (Alternative) */}
+                <div className="border-t pt-4">
+                  <p className="text-xs text-gray-500 mb-2">
+                    {language === "bn"
+                      ? "অথবা সরাসরি URL দিন:"
+                      : "Or enter URL directly:"}
+                  </p>
                   <input
                     type="url"
                     name="photoUrl"
                     value={formData.photoUrl}
                     onChange={handleInputChange}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    {language === "bn"
-                      ? "অফারের জন্য একটি আকর্ষণীয় ছবির লিংক দিন"
-                      : "Add a link to an attractive image for your offer"}
-                  </p>
                 </div>
               </div>
 
@@ -491,13 +606,17 @@ export default function EditOfferPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploading}
                   className="flex-1 py-3 px-6 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors"
                 >
                   {saving
                     ? language === "bn"
                       ? "সংরক্ষণ হচ্ছে..."
                       : "Saving..."
+                    : uploading
+                    ? language === "bn"
+                      ? "আপলোড হচ্ছে..."
+                      : "Uploading..."
                     : language === "bn"
                     ? "সংরক্ষণ করুন এবং সক্রিয় করুন"
                     : "Save & Activate"}
