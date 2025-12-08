@@ -116,3 +116,18 @@ model Session {
   @@index([expiresAt])
   @@map("sessions")
 }
+
+// OTP codes for phone verification
+model OtpCode {
+  id        String   @id @default(uuid())
+  phone     String
+  code      String
+  expiresAt DateTime @map("expires_at")
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phone, code])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
