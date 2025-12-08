@@ -54,6 +54,7 @@ model Restaurant {
   isActive        Boolean  @default(true) @map("is_active")
   offPeakBoost    Boolean  @default(false) @map("off_peak_boost")
   commissionRate  Float    @default(10.0) @map("commission_rate")
+  paymentOverdue  Boolean  @default(false) @map("payment_overdue")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -62,9 +63,11 @@ model Restaurant {
   favorites    Favorite[]
   commissions  Commission[]
   visitHistory VisitHistory[]
+  invoices     Invoice[]
 
   @@index([area, isActive])
   @@index([offPeakBoost, isActive])
+  @@index([paymentOverdue])
   @@map("restaurants")
 }
 
@@ -184,13 +187,52 @@ model Commission {
   isPaid       Boolean  @default(false) @map("is_paid")
   paidAt       DateTime? @map("paid_at")
   billingMonth String   @map("billing_month")
+  invoiceId    String?  @map("invoice_id")
   createdAt    DateTime @default(now()) @map("created_at")
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  invoice    Invoice?   @relation(fields: [invoiceId], references: [id])
 
   @@index([restaurantId, billingMonth])
   @@index([isPaid])
+  @@index([invoiceId])
   @@map("commissions")
+}
+
+// Invoice status enum
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// Monthly invoices for restaurants
+model Invoice {
+  id              String        @id @default(uuid())
+  invoiceNumber   String        @unique @map("invoice_number")
+  restaurantId    String        @map("restaurant_id")
+  billingMonth    String        @map("billing_month")
+  totalAmount     Float         @map("total_amount")
+  totalCoupons    Int           @map("total_coupons")
+  commissionRate  Float         @map("commission_rate")
+  status          InvoiceStatus @default(DRAFT)
+  dueDate         DateTime      @map("due_date")
+  paidAt          DateTime?     @map("paid_at")
+  paymentMethod   String?       @map("payment_method")
+  transactionId   String?       @map("transaction_id")
+  pdfUrl          String?       @map("pdf_url")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  restaurant  Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  commissions Commission[]
+
+  @@unique([restaurantId, billingMonth])
+  @@index([status])
+  @@index([dueDate])
+  @@map("invoices")
 }
 
 // Visit history for recently visited restaurants
