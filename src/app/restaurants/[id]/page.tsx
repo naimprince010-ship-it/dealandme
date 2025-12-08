@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import CustomerNav from "@/components/CustomerNav";
 
 interface Restaurant {
   id: string;
@@ -161,36 +162,37 @@ export default function RestaurantDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/restaurants" className="text-gray-600 hover:text-orange-500 flex items-center">
-            <span className="mr-2">←</span> Back
-          </Link>
-          <Link href="/my-coupons" className="text-sm text-gray-600 hover:text-orange-500">
-            My Coupons
-          </Link>
-        </div>
-      </header>
+      <CustomerNav />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">{restaurant.name}</h1>
-          <p className="text-gray-500 flex items-center mb-4">
-            <span className="mr-2">📍</span> {restaurant.area}
-          </p>
+        <Link href="/restaurants" className="inline-flex items-center text-gray-600 hover:text-indigo-600 mb-4">
+          <span className="mr-2">←</span> Back to restaurants
+        </Link>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 mb-1">{restaurant.name}</h1>
+              <p className="text-gray-500 flex items-center">
+                <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-sm">
+                  📍 {restaurant.area}
+                </span>
+              </p>
+            </div>
+          </div>
 
           {restaurant.description && (
             <p className="text-gray-600 mb-6">{restaurant.description}</p>
           )}
 
           {restaurant.offer && restaurant.offer.isActive ? (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-              <h2 className="text-lg font-semibold text-orange-700 mb-2">Current Offer</h2>
-              <p className="text-orange-600 text-lg">🎁 {restaurant.offer.offerText}</p>
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+              <h2 className="text-lg font-semibold text-indigo-700 mb-2">Current Offer</h2>
+              <p className="text-indigo-600 text-lg">🎁 {restaurant.offer.offerText}</p>
             </div>
           ) : (
-            <div className="bg-gray-100 rounded-lg p-4 mb-6">
-              <p className="text-gray-500">No active offer available</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-amber-700">This restaurant currently has no active offer.</p>
             </div>
           )}
 
@@ -201,9 +203,9 @@ export default function RestaurantDetailPage() {
           )}
 
           {coupon ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
               {couponMessage && (
-                <p className="text-green-600 mb-4">{couponMessage}</p>
+                <p className="text-green-600 mb-4 font-medium">{couponMessage}</p>
               )}
               <h3 className="text-lg font-semibold text-gray-700 mb-2">Your Coupon Code</h3>
               <div className="bg-white border-2 border-dashed border-green-400 rounded-lg p-4 mb-4">
@@ -214,7 +216,7 @@ export default function RestaurantDetailPage() {
               <p className="text-sm text-gray-500 mb-2">
                 Show this code to the restaurant staff
               </p>
-              <p className="text-sm font-medium text-orange-600">
+              <p className="text-sm font-medium text-indigo-600">
                 {formatExpiry(coupon.expiresAt)}
               </p>
             </div>
@@ -223,7 +225,7 @@ export default function RestaurantDetailPage() {
               <button
                 onClick={handleGetCoupon}
                 disabled={generating}
-                className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
+                className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed"
               >
                 {generating ? (
                   <span className="flex items-center justify-center">
@@ -239,7 +241,7 @@ export default function RestaurantDetailPage() {
         </div>
 
         <div className="text-center">
-          <Link href="/restaurants" className="text-orange-500 hover:underline">
+          <Link href="/restaurants" className="text-indigo-600 hover:underline">
             Browse more restaurants
           </Link>
         </div>

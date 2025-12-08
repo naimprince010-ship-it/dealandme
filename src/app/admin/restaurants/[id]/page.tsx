@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import AdminNav from "@/components/AdminNav";
 
 interface Offer {
   id: string;
@@ -152,15 +153,10 @@ export default function EditRestaurant() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
       </div>
     );
   }
@@ -170,7 +166,7 @@ export default function EditRestaurant() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Restaurant not found</p>
-          <Link href="/admin/restaurants" className="text-indigo-600 hover:text-indigo-800">
+          <Link href="/admin/restaurants" className="text-purple-600 hover:text-purple-800">
             Back to Restaurants
           </Link>
         </div>
@@ -180,35 +176,12 @@ export default function EditRestaurant() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <Link href="/admin/dashboard" className="text-xl font-bold text-indigo-600">
-              Dealbox
-            </Link>
-            <p className="text-sm text-gray-500">Admin Panel</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AdminNav />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <Link
-          href="/admin/restaurants"
-          className="text-indigo-600 hover:text-indigo-800 text-sm mb-2 inline-block"
-        >
-          &larr; Back to Restaurants
-        </Link>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
           Edit Restaurant: {restaurant.name}
-        </h2>
+        </h1>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
@@ -236,7 +209,7 @@ export default function EditRestaurant() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
 
@@ -250,7 +223,7 @@ export default function EditRestaurant() {
                 required
                 value={formData.area}
                 onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
 
@@ -263,7 +236,7 @@ export default function EditRestaurant() {
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               />
             </div>
 
@@ -273,7 +246,7 @@ export default function EditRestaurant() {
                 id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
               <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                 Restaurant is active
@@ -291,7 +264,7 @@ export default function EditRestaurant() {
                 id="newPassword"
                 value={formData.newPassword}
                 onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Leave empty to keep current password"
               />
               <p className="text-sm text-gray-500 mt-1">
@@ -304,7 +277,7 @@ export default function EditRestaurant() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? "Saving..." : "Save Restaurant Details"}
             </button>
@@ -325,7 +298,7 @@ export default function EditRestaurant() {
                 required
                 value={offerData.offerText}
                 onChange={(e) => setOfferData({ ...offerData, offerText: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="e.g., 20% off on all items"
               />
             </div>
@@ -336,7 +309,7 @@ export default function EditRestaurant() {
                 id="offerIsActive"
                 checked={offerData.isActive}
                 onChange={(e) => setOfferData({ ...offerData, isActive: e.target.checked })}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
               />
               <label htmlFor="offerIsActive" className="text-sm font-medium text-gray-700">
                 Offer is active
