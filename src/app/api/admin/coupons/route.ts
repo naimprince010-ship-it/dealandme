@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdmin } from "@/lib/auth";
+import { Prisma, CouponStatus } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,17 +25,8 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
 
-    // Build where clause
-    interface WhereClause {
-      restaurantId?: string;
-      user?: { phone: { contains: string; mode: "insensitive" } };
-      status?: string;
-      OR?: Array<{ status: string } | { status: string; expiresAt: { lt: Date } }>;
-      createdAt?: { gte?: Date; lte?: Date };
-      redeemedAt?: { gte?: Date; lte?: Date };
-    }
-
-    const whereClause: WhereClause = {};
+    // Build where clause using Prisma's generated types
+    const whereClause: Prisma.CouponWhereInput = {};
 
     // Filter by restaurant
     if (restaurantId) {
@@ -56,11 +48,11 @@ export async function GET(request: NextRequest) {
       if (status === "EXPIRED") {
         // Include both EXPIRED status and UNUSED with expired time
         whereClause.OR = [
-          { status: "EXPIRED" },
-          { status: "UNUSED", expiresAt: { lt: now } },
+          { status: CouponStatus.EXPIRED },
+          { status: CouponStatus.UNUSED, expiresAt: { lt: now } },
         ];
       } else {
-        whereClause.status = status;
+        whereClause.status = status as CouponStatus;
       }
     }
 
