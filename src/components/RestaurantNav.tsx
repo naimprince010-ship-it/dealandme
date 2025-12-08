@@ -60,6 +60,16 @@ export default function RestaurantNav() {
             >
               History
             </Link>
+            <Link
+              href="/restaurant/settings"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive("/restaurant/settings")
+                  ? "bg-green-100 text-green-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Settings
+            </Link>
             <button
               onClick={handleLogout}
               disabled={loggingOut}

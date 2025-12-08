@@ -18,6 +18,18 @@ export async function GET(
             isActive: true,
           },
         },
+        photos: {
+          orderBy: [
+            { isPrimary: "desc" },
+            { sortOrder: "asc" },
+          ],
+          select: {
+            id: true,
+            url: true,
+            caption: true,
+            isPrimary: true,
+          },
+        },
       },
     });
 

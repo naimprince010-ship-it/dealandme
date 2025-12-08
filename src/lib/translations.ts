@@ -559,6 +559,180 @@ export const translations = {
       bn: "আপনার পরিসংখ্যান",
     },
   },
+
+  // Milestone 7: Restaurant Marketplace Upgrade
+  restaurantSettings: {
+    title: {
+      en: "Restaurant Settings",
+      bn: "রেস্টুরেন্ট সেটিংস",
+    },
+    photoGallery: {
+      en: "Photo Gallery",
+      bn: "ফটো গ্যালারি",
+    },
+    addNewPhoto: {
+      en: "Add New Photo",
+      bn: "নতুন ফটো যোগ করুন",
+    },
+    photoUrl: {
+      en: "Enter photo URL...",
+      bn: "ফটো URL দিন...",
+    },
+    caption: {
+      en: "Caption (optional)",
+      bn: "ক্যাপশন (ঐচ্ছিক)",
+    },
+    addPhoto: {
+      en: "Add Photo",
+      bn: "ফটো যোগ করুন",
+    },
+    primary: {
+      en: "Primary",
+      bn: "প্রাইমারি",
+    },
+    setPrimary: {
+      en: "Set Primary",
+      bn: "প্রাইমারি করুন",
+    },
+    delete: {
+      en: "Delete",
+      bn: "মুছুন",
+    },
+    photoTip: {
+      en: "Tip: Use URLs from Google Drive, Imgur, or any image hosting service",
+      bn: "টিপ: Google Drive, Imgur, বা অন্য কোনো ইমেজ হোস্টিং সার্ভিস থেকে URL দিন",
+    },
+    menu: {
+      en: "Menu",
+      bn: "মেনু",
+    },
+    menuUrl: {
+      en: "Enter menu URL...",
+      bn: "মেনু URL দিন...",
+    },
+    viewMenu: {
+      en: "View Menu",
+      bn: "মেনু দেখুন",
+    },
+    addMenu: {
+      en: "Add Menu",
+      bn: "মেনু যোগ করুন",
+    },
+    noMenuAdded: {
+      en: "No menu added yet",
+      bn: "কোনো মেনু যোগ করা হয়নি",
+    },
+    menuTip: {
+      en: "Tip: Upload your menu PDF to Google Drive or Dropbox and share the link",
+      bn: "টিপ: Google Drive বা Dropbox এ মেনু PDF আপলোড করে শেয়ার লিংক দিন",
+    },
+    save: {
+      en: "Save",
+      bn: "সেভ করুন",
+    },
+    cancel: {
+      en: "Cancel",
+      bn: "বাতিল",
+    },
+    edit: {
+      en: "Edit",
+      bn: "এডিট",
+    },
+  },
+
+  scheduledOffers: {
+    title: {
+      en: "Scheduled Offers",
+      bn: "শিডিউল অফার",
+    },
+    newSchedule: {
+      en: "New Schedule",
+      bn: "নতুন শিডিউল",
+    },
+    offerText: {
+      en: "Offer text...",
+      bn: "অফার টেক্সট...",
+    },
+    startTime: {
+      en: "Start Time",
+      bn: "শুরু",
+    },
+    endTime: {
+      en: "End Time",
+      bn: "শেষ",
+    },
+    scheduleOffer: {
+      en: "Schedule Offer",
+      bn: "শিডিউল করুন",
+    },
+    noScheduledOffers: {
+      en: "No scheduled offers. Create one!",
+      bn: "কোনো শিডিউল অফার নেই। নতুন শিডিউল করুন!",
+    },
+    live: {
+      en: "LIVE",
+      bn: "লাইভ",
+    },
+    ended: {
+      en: "Ended",
+      bn: "শেষ",
+    },
+    active: {
+      en: "Active",
+      bn: "সক্রিয়",
+    },
+    paused: {
+      en: "Paused",
+      bn: "বিরতি",
+    },
+    pause: {
+      en: "Pause",
+      bn: "বিরতি",
+    },
+    resume: {
+      en: "Resume",
+      bn: "চালু",
+    },
+  },
+
+  reviews: {
+    title: {
+      en: "Reviews",
+      bn: "রিভিউ",
+    },
+    writeReview: {
+      en: "Write Review",
+      bn: "রিভিউ দিন",
+    },
+    rating: {
+      en: "Rating",
+      bn: "রেটিং",
+    },
+    comment: {
+      en: "Comment (optional)",
+      bn: "মন্তব্য (ঐচ্ছিক)",
+    },
+    shareExperience: {
+      en: "Share your experience...",
+      bn: "আপনার অভিজ্ঞতা শেয়ার করুন...",
+    },
+    submit: {
+      en: "Submit",
+      bn: "জমা দিন",
+    },
+    yourReview: {
+      en: "Your Review",
+      bn: "আপনার রিভিউ",
+    },
+    noReviews: {
+      en: "No reviews yet. Be the first to review!",
+      bn: "এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!",
+    },
+    redeemToReview: {
+      en: "Redeem a coupon at this restaurant to leave a review",
+      bn: "রিভিউ দিতে এই রেস্টুরেন্টে কুপন ব্যবহার করুন",
+    },
+  },
 } as const;
 
 /**

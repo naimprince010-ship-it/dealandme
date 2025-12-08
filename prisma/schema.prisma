@@ -38,6 +38,7 @@ model User {
   referrals         Referral[] @relation("ReferrerRelation")
   visitHistory      VisitHistory[]
   pushSubscriptions PushSubscription[]
+  reviews           Review[]
 
   @@map("users")
 }
@@ -49,22 +50,31 @@ model Restaurant {
   area            String
   cuisine         String?
   description     String?
+  address         String?
+  phone           String?
+  menuUrl         String?  @map("menu_url")
   username        String   @unique
   passwordHash    String   @map("password_hash")
   isActive        Boolean  @default(true) @map("is_active")
   offPeakBoost    Boolean  @default(false) @map("off_peak_boost")
   commissionRate  Float    @default(10.0) @map("commission_rate")
+  avgRating       Float    @default(0) @map("avg_rating")
+  totalReviews    Int      @default(0) @map("total_reviews")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  offer        Offer?
-  coupons      Coupon[]
-  favorites    Favorite[]
-  commissions  Commission[]
-  visitHistory VisitHistory[]
+  offer           Offer?
+  coupons         Coupon[]
+  favorites       Favorite[]
+  commissions     Commission[]
+  visitHistory    VisitHistory[]
+  photos          RestaurantPhoto[]
+  reviews         Review[]
+  scheduledOffers ScheduledOffer[]
 
   @@index([area, isActive])
   @@index([offPeakBoost, isActive])
+  @@index([avgRating])
   @@map("restaurants")
 }
 
@@ -221,4 +231,56 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// Restaurant photos gallery
+model RestaurantPhoto {
+  id           String   @id @default(uuid())
+  restaurantId String   @map("restaurant_id")
+  url          String
+  caption      String?
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, sortOrder])
+  @@map("restaurant_photos")
+}
+
+// Customer reviews for restaurants
+model Review {
+  id           String   @id @default(uuid())
+  restaurantId String   @map("restaurant_id")
+  userId       String   @map("user_id")
+  rating       Int      // 1-5 stars
+  comment      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, userId])
+  @@index([restaurantId, createdAt])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// Scheduled offers for real-time offer scheduling
+model ScheduledOffer {
+  id           String   @id @default(uuid())
+  restaurantId String   @map("restaurant_id")
+  offerText    String   @map("offer_text")
+  startTime    DateTime @map("start_time")
+  endTime      DateTime @map("end_time")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, startTime, endTime])
+  @@index([isActive, startTime, endTime])
+  @@map("scheduled_offers")
 }
