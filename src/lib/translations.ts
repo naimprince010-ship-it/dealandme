@@ -559,6 +559,110 @@ export const translations = {
       bn: "আপনার পরিসংখ্যান",
     },
   },
+
+  // Milestone 8: Billing & Invoices
+  billing: {
+    title: {
+      en: "Billing & Invoices",
+      bn: "বিলিং ও ইনভয়েস",
+    },
+    totalUnpaid: {
+      en: "Total Unpaid",
+      bn: "মোট বকেয়া",
+    },
+    overdueInvoices: {
+      en: "Overdue Invoices",
+      bn: "ওভারডিউ ইনভয়েস",
+    },
+    invoices: {
+      en: "Invoices",
+      bn: "ইনভয়েস",
+    },
+    coupons: {
+      en: "coupons",
+      bn: "কুপন",
+    },
+    payNow: {
+      en: "Pay Now",
+      bn: "এখনই পে করুন",
+    },
+    paidOn: {
+      en: "Paid on",
+      bn: "পেমেন্ট হয়েছে",
+    },
+    dueDate: {
+      en: "Due Date",
+      bn: "শেষ তারিখ",
+    },
+    noInvoices: {
+      en: "No invoices yet",
+      bn: "এখনো কোনো ইনভয়েস নেই",
+    },
+    payInvoice: {
+      en: "Pay Invoice",
+      bn: "ইনভয়েস পে করুন",
+    },
+    invoiceNumber: {
+      en: "Invoice Number",
+      bn: "ইনভয়েস নম্বর",
+    },
+    amount: {
+      en: "Amount",
+      bn: "পরিমাণ",
+    },
+    paymentMethod: {
+      en: "Payment Method",
+      bn: "পেমেন্ট মাধ্যম",
+    },
+    paymentInstructions: {
+      en: "Payment Instructions",
+      bn: "পেমেন্ট নির্দেশনা",
+    },
+    merchantNumber: {
+      en: "Merchant Number",
+      bn: "মার্চেন্ট নম্বর",
+    },
+    bankName: {
+      en: "Bank Name",
+      bn: "ব্যাংকের নাম",
+    },
+    accountNumber: {
+      en: "Account Number",
+      bn: "একাউন্ট নম্বর",
+    },
+    accountName: {
+      en: "Account Name",
+      bn: "একাউন্টের নাম",
+    },
+    transactionId: {
+      en: "Transaction ID",
+      bn: "ট্রানজেকশন আইডি",
+    },
+    enterTransactionId: {
+      en: "Enter transaction ID after payment",
+      bn: "পেমেন্টের পর ট্রানজেকশন আইডি দিন",
+    },
+    cancel: {
+      en: "Cancel",
+      bn: "বাতিল",
+    },
+    confirming: {
+      en: "Confirming...",
+      bn: "কনফার্ম হচ্ছে...",
+    },
+    confirmPayment: {
+      en: "Confirm Payment",
+      bn: "পেমেন্ট কনফার্ম করুন",
+    },
+    paymentOverdueTitle: {
+      en: "Payment Overdue - Offers Blocked",
+      bn: "পেমেন্ট বকেয়া - অফার ব্লক করা হয়েছে",
+    },
+    paymentOverdueMessage: {
+      en: "Your restaurant offers are currently blocked due to overdue payment. Please pay your pending invoices to restore your offers.",
+      bn: "বকেয়া পেমেন্টের কারণে আপনার রেস্টুরেন্টের অফার ব্লক করা হয়েছে। অফার চালু করতে বকেয়া ইনভয়েস পে করুন।",
+    },
+  },
 } as const;
 
 /**

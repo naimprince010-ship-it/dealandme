@@ -68,7 +68,17 @@ export default function AdminNav() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              Billing
+              Commissions
+            </Link>
+            <Link
+              href="/admin/invoices"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive("/admin/invoices")
+                  ? "bg-purple-100 text-purple-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Invoices
             </Link>
             <button
               onClick={handleLogout}

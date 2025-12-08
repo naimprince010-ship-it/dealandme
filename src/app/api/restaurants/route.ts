@@ -14,9 +14,11 @@ export async function GET() {
     const offPeak = isOffPeakHours();
 
     // First get all active restaurants with their offers
+    // Exclude restaurants with payment overdue (auto-blocked)
     const allRestaurants = await prisma.restaurant.findMany({
       where: {
         isActive: true,
+        paymentOverdue: false,
       },
       include: {
         offer: {
