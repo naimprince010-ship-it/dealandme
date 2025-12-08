@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import RestaurantNav from "@/components/RestaurantNav";
 import { useLanguage } from "@/lib/LanguageContext";
+import { getOffPeakStatus } from "@/lib/offer";
 
 interface Restaurant {
   id: string;
@@ -50,10 +51,9 @@ export default function RestaurantDashboard() {
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [offPeakBoost, setOffPeakBoost] = useState(false);
+  const [offPeakStatus, setOffPeakStatus] = useState(getOffPeakStatus(false));
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editingOffer, setEditingOffer] = useState(false);
-  const [newOfferText, setNewOfferText] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -85,9 +85,7 @@ export default function RestaurantDashboard() {
           const offerData = await offerRes.json();
           setOffer(offerData.offer);
           setOffPeakBoost(offerData.offPeakBoost || false);
-          if (offerData.offer) {
-            setNewOfferText(offerData.offer.offerText);
-          }
+          setOffPeakStatus(getOffPeakStatus(offerData.offPeakBoost || false));
         }
 
         if (analyticsRes.ok) {
@@ -124,37 +122,18 @@ export default function RestaurantDashboard() {
     }
   };
 
-  const saveOfferText = async () => {
-    if (!newOfferText.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch("/api/restaurant/offer", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ offerText: newOfferText }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setOffer(data.offer);
-        setEditingOffer(false);
-      }
-    } catch (error) {
-      console.error("Save offer error:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const toggleOffPeakBoost = async () => {
     setSaving(true);
+    const newValue = !offPeakBoost;
     try {
       const res = await fetch("/api/restaurant/offer", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ offPeakBoost: !offPeakBoost }),
+        body: JSON.stringify({ offPeakBoost: newValue }),
       });
       if (res.ok) {
-        setOffPeakBoost(!offPeakBoost);
+        setOffPeakBoost(newValue);
+        setOffPeakStatus(getOffPeakStatus(newValue));
       }
     } catch (error) {
       console.error("Toggle off-peak boost error:", error);
@@ -235,54 +214,30 @@ export default function RestaurantDashboard() {
           </div>
           
           {offer ? (
-            <div>
-              {editingOffer ? (
-                <div className="space-y-3">
-                  <textarea
-                    value={newOfferText}
-                    onChange={(e) => setNewOfferText(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    rows={3}
-                    placeholder={language === "bn" ? "অফার টেক্সট লিখুন..." : "Enter offer text..."}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={saveOfferText}
-                      disabled={saving}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-                    >
-                      {saving ? "..." : (language === "bn" ? "সেভ করুন" : "Save")}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingOffer(false);
-                        setNewOfferText(offer.offerText);
-                      }}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                    >
-                      {language === "bn" ? "বাতিল" : "Cancel"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="bg-indigo-50 text-indigo-700 px-4 py-3 rounded-lg flex-1 mr-4">
-                    <span className="mr-2">🎁</span>
-                    {offer.offerText}
-                  </div>
-                  <button
-                    onClick={() => setEditingOffer(true)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                  >
-                    {language === "bn" ? "এডিট" : "Edit"}
-                  </button>
-                </div>
-              )}
+            <div className="flex items-center justify-between">
+              <div className="bg-indigo-50 text-indigo-700 px-4 py-3 rounded-lg flex-1 mr-4">
+                <span className="mr-2">🎁</span>
+                {offer.offerText}
+              </div>
+              <Link
+                href="/restaurant/offer/edit"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                {language === "bn" ? "এডিট করুন" : "Edit Offer"}
+              </Link>
             </div>
           ) : (
-            <p className="text-gray-500">
-              {language === "bn" ? "কোনো অফার নেই" : "No offer set"}
-            </p>
+            <div className="text-center py-4">
+              <p className="text-gray-500 mb-4">
+                {language === "bn" ? "কোনো অফার নেই" : "No offer set"}
+              </p>
+              <Link
+                href="/restaurant/offer/edit"
+                className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                {language === "bn" ? "অফার তৈরি করুন" : "Create Offer"}
+              </Link>
+            </div>
           )}
         </div>
 
@@ -299,6 +254,12 @@ export default function RestaurantDashboard() {
                   ? "৩-৬টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
                   : "Get priority visibility during 3-6pm"}
               </p>
+              {offPeakBoost && (
+                <p className={`text-sm mt-2 ${offPeakStatus.isActive ? "text-green-600" : "text-yellow-600"}`}>
+                  {offPeakStatus.isActive ? "🟢" : "🟡"}{" "}
+                  {language === "bn" ? offPeakStatus.labelBn : offPeakStatus.label}
+                </p>
+              )}
             </div>
             <button
               onClick={toggleOffPeakBoost}
