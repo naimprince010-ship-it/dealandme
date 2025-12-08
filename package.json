@@ -2,15 +2,16 @@
   "name": "dealbox",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:seed": "npx tsx prisma/seed.ts",
-    "db:push": "npx prisma db push",
-    "db:studio": "npx prisma studio"
-  },
+    "scripts": {
+      "dev": "next dev",
+      "build": "prisma generate && prisma migrate deploy && next build",
+      "postinstall": "prisma generate",
+      "start": "next start",
+      "lint": "next lint",
+      "db:seed": "npx tsx prisma/seed.ts",
+      "db:push": "npx prisma db push",
+      "db:studio": "npx prisma studio"
+    },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
