@@ -27,11 +27,15 @@ enum UserType {
 
 // Customers - identified by phone number only
 model User {
-  id        String   @id @default(uuid())
-  phone     String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  phone        String   @unique
+  referralCode String?  @unique @map("referral_code")
+  referredBy   String?  @map("referred_by")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  coupons Coupon[]
+  coupons   Coupon[]
+  favorites Favorite[]
+  referrals Referral[] @relation("ReferrerRelation")
 
   @@map("users")
 }
@@ -48,8 +52,9 @@ model Restaurant {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  offer   Offer?
-  coupons Coupon[]
+  offer     Offer?
+  coupons   Coupon[]
+  favorites Favorite[]
 
   @@index([area, isActive])
   @@map("restaurants")
@@ -130,4 +135,34 @@ model OtpCode {
   @@index([phone, code])
   @@index([expiresAt])
   @@map("otp_codes")
+}
+
+// User favorites - save favorite restaurants
+model Favorite {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  restaurantId String   @map("restaurant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, restaurantId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+// Referral tracking
+model Referral {
+  id           String   @id @default(uuid())
+  referrerId   String   @map("referrer_id")
+  referredId   String   @map("referred_id")
+  bonusAwarded Boolean  @default(false) @map("bonus_awarded")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  referrer User @relation("ReferrerRelation", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@unique([referredId])
+  @@index([referrerId])
+  @@map("referrals")
 }
