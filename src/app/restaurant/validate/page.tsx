@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RestaurantNav from "@/components/RestaurantNav";
+import { useLanguage } from "@/lib/LanguageContext";
 
 type ValidationResult =
   | "REDEEMED"
@@ -28,6 +29,7 @@ interface Restaurant {
 
 export default function ValidateCouponPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState("");
@@ -151,7 +153,7 @@ export default function ValidateCouponPage() {
       case "REDEEMED":
         return (
           <svg
-            className="w-16 h-16"
+            className="w-24 h-24"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -169,7 +171,7 @@ export default function ValidateCouponPage() {
       case "WRONG_RESTAURANT":
         return (
           <svg
-            className="w-16 h-16"
+            className="w-24 h-24"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -185,7 +187,7 @@ export default function ValidateCouponPage() {
       case "NOT_FOUND":
         return (
           <svg
-            className="w-16 h-16"
+            className="w-24 h-24"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -206,15 +208,15 @@ export default function ValidateCouponPage() {
   const getResultTitle = () => {
     switch (result) {
       case "REDEEMED":
-        return "Coupon Redeemed!";
+        return t("validation", "redeemed");
       case "ALREADY_USED":
-        return "Already Used";
+        return t("validation", "alreadyUsed");
       case "EXPIRED":
-        return "Coupon Expired";
+        return t("validation", "expired");
       case "WRONG_RESTAURANT":
-        return "Wrong Restaurant";
+        return t("validation", "wrongRestaurant");
       case "NOT_FOUND":
-        return "Not Found";
+        return t("validation", "notFound");
       default:
         return "";
     }
@@ -227,25 +229,25 @@ export default function ValidateCouponPage() {
       <RestaurantNav />
 
       <main className="max-w-lg mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Validate Coupon</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t("validation", "title")}</h1>
 
         {!result ? (
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-8">
             <form onSubmit={handleValidate}>
-              <div className="mb-4">
+              <div className="mb-6">
                 <label
                   htmlFor="code"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-lg font-medium text-gray-700 mb-3"
                 >
-                  Enter Coupon Code
+                  {t("validation", "enterCode")}
                 </label>
                 <input
                   type="text"
                   id="code"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="e.g., ABC12345"
-                  className="w-full px-4 py-3 text-lg font-mono tracking-wider border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase"
+                  placeholder={t("validation", "codePlaceholder")}
+                  className="w-full px-6 py-5 text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 uppercase text-center"
                   autoComplete="off"
                   autoFocus
                 />
@@ -254,12 +256,12 @@ export default function ValidateCouponPage() {
               <button
                 type="submit"
                 disabled={validating || !code.trim()}
-                className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-indigo-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {validating ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg
-                      className="animate-spin h-5 w-5"
+                      className="animate-spin h-6 w-6"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -277,18 +279,17 @@ export default function ValidateCouponPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Validating...
+                    {t("validation", "validating")}
                   </span>
                 ) : (
-                  "Validate Coupon"
+                  t("validation", "validateButton")
                 )}
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                Ask the customer to show their coupon code, then enter it above
-                to validate and redeem.
+            <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+              <p className="text-sm text-indigo-700">
+                {t("validation", "instructions")}
               </p>
             </div>
           </div>

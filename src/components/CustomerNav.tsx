@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
+import LanguageToggle from "./LanguageToggle";
 
 export default function CustomerNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -27,7 +30,7 @@ export default function CustomerNav() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           <Link href="/restaurants" className="font-bold text-lg text-indigo-600">
-            Dealbox
+            {t("appName", "en")}
           </Link>
           <div className="flex items-center gap-1">
             <Link
@@ -38,7 +41,7 @@ export default function CustomerNav() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              Restaurants
+              {t("nav", "restaurants")}
             </Link>
             <Link
               href="/my-coupons"
@@ -48,15 +51,16 @@ export default function CustomerNav() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              My Coupons
+              {t("nav", "myCoupons")}
             </Link>
             <button
               onClick={handleLogout}
               disabled={loggingOut}
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
             >
-              {loggingOut ? "..." : "Logout"}
+              {loggingOut ? "..." : t("nav", "logout")}
             </button>
+            <LanguageToggle />
           </div>
         </div>
       </div>
