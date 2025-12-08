@@ -391,6 +391,11 @@ export default function EditOfferPage() {
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  <p className="mt-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                    {language === "bn"
+                      ? "⚠️ এটি শুধু তখন দেখাবে যখন উপরে ডিসকাউন্ট ০ থাকবে। ডিসকাউন্ট সেট করা থাকলে সেটাই দেখাবে।"
+                      : "⚠️ This only shows when discount is 0 above. If discount is set, that will be displayed instead."}
+                  </p>
                   {/* Quick Title Chips */}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {TITLE_SUGGESTIONS.map((suggestion, index) => (
