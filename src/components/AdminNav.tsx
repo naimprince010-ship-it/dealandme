@@ -51,6 +51,16 @@ export default function AdminNav() {
               Restaurants
             </Link>
             <Link
+              href="/admin/offers"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive("/admin/offers")
+                  ? "bg-purple-100 text-purple-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Offers
+            </Link>
+            <Link
               href="/admin/coupons"
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive("/admin/coupons")
