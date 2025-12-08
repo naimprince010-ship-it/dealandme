@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import CustomerNav from "@/components/CustomerNav";
+import CouponUsageGuide from "@/components/CouponUsageGuide";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface Restaurant {
   id: string;
@@ -36,6 +38,7 @@ export default function RestaurantDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
+  const { t } = useLanguage();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,14 +210,14 @@ export default function RestaurantDetailPage() {
               {couponMessage && (
                 <p className="text-green-600 mb-4 font-medium">{couponMessage}</p>
               )}
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Your Coupon Code</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t("restaurantDetail", "yourCouponCode")}</h3>
               <div className="bg-white border-2 border-dashed border-green-400 rounded-lg p-4 mb-4">
                 <p className="text-3xl font-mono font-bold text-green-600 tracking-wider">
                   {coupon.code}
                 </p>
               </div>
               <p className="text-sm text-gray-500 mb-2">
-                Show this code to the restaurant staff
+                {t("restaurantDetail", "showCodeToStaff")}
               </p>
               <p className="text-sm font-medium text-indigo-600">
                 {formatExpiry(coupon.expiresAt)}
@@ -230,19 +233,23 @@ export default function RestaurantDetailPage() {
                 {generating ? (
                   <span className="flex items-center justify-center">
                     <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
-                    Generating...
+                    {t("restaurantDetail", "generating")}
                   </span>
                 ) : (
-                  "Get Coupon"
+                  t("restaurantDetail", "getCoupon")
                 )}
               </button>
             )
           )}
+          
+          <div className="mt-6">
+            <CouponUsageGuide />
+          </div>
         </div>
 
         <div className="text-center">
           <Link href="/restaurants" className="text-indigo-600 hover:underline">
-            Browse more restaurants
+            {t("restaurantDetail", "browseMore")}
           </Link>
         </div>
       </main>
