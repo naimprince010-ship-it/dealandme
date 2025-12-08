@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Check if current time is in off-peak hours (3-6pm Bangladesh time, UTC+6)
+function isOffPeakHours(): boolean {
+  const now = new Date();
+  // Bangladesh is UTC+6
+  const bdHour = (now.getUTCHours() + 6) % 24;
+  return bdHour >= 15 && bdHour < 18; // 3pm to 6pm
+}
+
 export async function GET() {
   try {
+    const offPeak = isOffPeakHours();
+
     // First get all active restaurants with their offers
     const allRestaurants = await prisma.restaurant.findMany({
       where: {
@@ -33,9 +43,19 @@ export async function GET() {
       area: r.area,
       description: r.description,
       isActive: r.isActive,
+      offPeakBoost: r.offPeakBoost,
       createdAt: r.createdAt,
       offer: r.offer ? { id: r.offer.id, offerText: r.offer.offerText } : null,
     }));
+
+    // Sort: during off-peak hours, boosted restaurants come first
+    if (offPeak) {
+      restaurants.sort((a, b) => {
+        if (a.offPeakBoost && !b.offPeakBoost) return -1;
+        if (!a.offPeakBoost && b.offPeakBoost) return 1;
+        return 0;
+      });
+    }
 
     // Group by area
     const groupedByArea: Record<string, typeof restaurants> = {};
@@ -49,6 +69,7 @@ export async function GET() {
     return NextResponse.json({
       restaurants,
       groupedByArea,
+      isOffPeakHours: offPeak,
     });
   } catch (error) {
     console.error("Get restaurants error:", error);
