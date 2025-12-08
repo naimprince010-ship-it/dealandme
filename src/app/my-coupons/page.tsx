@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import CustomerNav from "@/components/CustomerNav";
 
 interface Coupon {
   id: string;
@@ -58,11 +59,6 @@ export default function MyCouponsPage() {
     fetchCoupons();
   }, [router]);
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-  };
-
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString("en-IN", {
       dateStyle: "medium",
@@ -99,30 +95,23 @@ export default function MyCouponsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your coupons...</p>
         </div>
       </div>
     );
   }
 
+  // Sort coupons: active first, then used/expired
+  const sortedCoupons = [...coupons].sort((a, b) => {
+    if (a.effectiveStatus === "UNUSED" && b.effectiveStatus !== "UNUSED") return -1;
+    if (a.effectiveStatus !== "UNUSED" && b.effectiveStatus === "UNUSED") return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-orange-500">
-            Dealbox
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/restaurants" className="text-sm text-gray-600 hover:text-orange-500">
-              Restaurants
-            </Link>
-            <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-orange-500">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <CustomerNav />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">My Coupons</h1>
@@ -133,7 +122,7 @@ export default function MyCouponsPage() {
           </div>
         )}
 
-        {coupons.length === 0 ? (
+        {sortedCoupons.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🎟️</div>
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
@@ -144,20 +133,20 @@ export default function MyCouponsPage() {
             </p>
             <Link
               href="/restaurants"
-              className="inline-block bg-orange-500 text-white py-2 px-6 rounded-lg hover:bg-orange-600 transition-colors"
+              className="inline-block bg-indigo-600 text-white py-2.5 px-6 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
             >
               Browse Restaurants
             </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {coupons.map((coupon) => (
+            {sortedCoupons.map((coupon) => (
               <div
                 key={coupon.id}
-                className={`bg-white rounded-lg shadow-sm border p-4 ${
+                className={`bg-white rounded-xl shadow-sm border p-5 transition-all ${
                   coupon.effectiveStatus === "UNUSED"
-                    ? "border-green-200"
-                    : "border-gray-100 opacity-75"
+                    ? "border-green-200 ring-1 ring-green-100"
+                    : "border-gray-100 opacity-70"
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -170,8 +159,8 @@ export default function MyCouponsPage() {
                   {getStatusBadge(coupon.effectiveStatus)}
                 </div>
 
-                <div className="bg-gray-50 rounded-md p-3 mb-3">
-                  <p className="text-sm text-gray-600">
+                <div className="bg-indigo-50 rounded-lg p-3 mb-3">
+                  <p className="text-sm text-indigo-700">
                     🎁 {coupon.offer.offerText}
                   </p>
                 </div>
@@ -192,7 +181,7 @@ export default function MyCouponsPage() {
                       <p>Redeemed: {formatDate(coupon.redeemedAt)}</p>
                     )}
                     {coupon.effectiveStatus === "UNUSED" && (
-                      <p className="text-orange-600">
+                      <p className="text-indigo-600 font-medium">
                         Expires: {formatDate(coupon.expiresAt)}
                       </p>
                     )}

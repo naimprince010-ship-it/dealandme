@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import AdminNav from "@/components/AdminNav";
 
 interface Restaurant {
   id: string;
@@ -131,11 +131,6 @@ export default function AdminCoupons() {
     setTimeout(fetchCoupons, 0);
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -162,35 +157,10 @@ export default function AdminCoupons() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <Link href="/admin/dashboard" className="text-xl font-bold text-indigo-600">
-              Dealbox
-            </Link>
-            <p className="text-sm text-gray-500">Admin Panel</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AdminNav />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link
-            href="/admin/dashboard"
-            className="text-indigo-600 hover:text-indigo-800 text-sm mb-2 inline-block"
-          >
-            &larr; Back to Dashboard
-          </Link>
-          <h2 className="text-2xl font-bold text-gray-900">Coupon Monitoring</h2>
-        </div>
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Coupon Monitoring</h1>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">

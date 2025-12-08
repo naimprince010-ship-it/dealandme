@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import RestaurantNav from "@/components/RestaurantNav";
 
 interface Redemption {
   id: string;
@@ -27,7 +27,7 @@ interface Restaurant {
 
 export default function RedemptionHistoryPage() {
   const router = useRouter();
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, today: 0 });
@@ -92,11 +92,6 @@ export default function RedemptionHistoryPage() {
     fetchRedemptions();
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/restaurant/login");
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -118,56 +113,16 @@ export default function RedemptionHistoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <Link href="/restaurant/dashboard" className="text-xl font-bold text-indigo-600">
-              Dealbox
-            </Link>
-            <p className="text-sm text-gray-500">Restaurant Partner</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700 hidden sm:inline">{restaurant?.name}</span>
-            <button
-              onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <RestaurantNav />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link
-            href="/restaurant/dashboard"
-            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back to Dashboard
-          </Link>
-        </div>
-
+      <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">
             Redemption History

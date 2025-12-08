@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import RestaurantNav from "@/components/RestaurantNav";
 
 type ValidationResult =
   | "REDEEMED"
@@ -28,7 +28,7 @@ interface Restaurant {
 
 export default function ValidateCouponPage() {
   const router = useRouter();
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState("");
   const [validating, setValidating] = useState(false);
@@ -99,15 +99,10 @@ export default function ValidateCouponPage() {
     setCouponInfo(null);
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/restaurant/login");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
       </div>
     );
   }
@@ -229,49 +224,9 @@ export default function ValidateCouponPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <Link href="/restaurant/dashboard" className="text-xl font-bold text-indigo-600">
-              Dealbox
-            </Link>
-            <p className="text-sm text-gray-500">Restaurant Partner</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700 hidden sm:inline">{restaurant?.name}</span>
-            <button
-              onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <RestaurantNav />
 
       <main className="max-w-lg mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link
-            href="/restaurant/dashboard"
-            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back to Dashboard
-          </Link>
-        </div>
-
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Validate Coupon</h1>
 
         {!result ? (
