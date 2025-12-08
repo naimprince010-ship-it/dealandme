@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealbox-v1';
+const CACHE_NAME = 'dealbox-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -6,6 +6,57 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.svg',
   '/icons/icon-maskable.svg',
 ];
+
+// Push notification event handler
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const options = {
+      body: data.body || 'You have a new notification',
+      icon: '/icons/icon-192x192.svg',
+      badge: '/icons/icon-192x192.svg',
+      vibrate: [100, 50, 100],
+      data: {
+        url: data.url || '/',
+        couponCode: data.couponCode,
+      },
+      actions: data.actions || [],
+      tag: data.tag || 'dealandme-notification',
+      renotify: true,
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'Dealandme', options)
+    );
+  } catch (error) {
+    console.error('Push notification error:', error);
+  }
+});
+
+// Notification click event handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if there's already a window open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Open a new window if none exists
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
