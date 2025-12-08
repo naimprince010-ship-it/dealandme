@@ -419,6 +419,146 @@ export const translations = {
       bn: "কুপন তৈরি করতে ব্যর্থ",
     },
   },
+
+  // Phase 2: Favorites
+  favorites: {
+    title: {
+      en: "Favorites",
+      bn: "ফেভারিট",
+    },
+    addToFavorites: {
+      en: "Add to Favorites",
+      bn: "ফেভারিটে যোগ করুন",
+    },
+    removeFromFavorites: {
+      en: "Remove from Favorites",
+      bn: "ফেভারিট থেকে সরান",
+    },
+    noFavorites: {
+      en: "No favorites yet",
+      bn: "এখনো কোনো ফেভারিট নেই",
+    },
+    noFavoritesSubtitle: {
+      en: "Browse restaurants and add your favorites!",
+      bn: "রেস্টুরেন্ট দেখুন এবং ফেভারিটে যোগ করুন!",
+    },
+  },
+
+  // Phase 2: Area Selection
+  area: {
+    selectArea: {
+      en: "Select Area",
+      bn: "এলাকা নির্বাচন করুন",
+    },
+    allAreas: {
+      en: "All Areas",
+      bn: "সব এলাকা",
+    },
+    dhanmondi: {
+      en: "Dhanmondi",
+      bn: "ধানমন্ডি",
+    },
+    banani: {
+      en: "Banani",
+      bn: "বনানী",
+    },
+    uttara: {
+      en: "Uttara",
+      bn: "উত্তরা",
+    },
+    gulshan: {
+      en: "Gulshan",
+      bn: "গুলশান",
+    },
+    mirpur: {
+      en: "Mirpur",
+      bn: "মিরপুর",
+    },
+    mohammadpur: {
+      en: "Mohammadpur",
+      bn: "মোহাম্মদপুর",
+    },
+  },
+
+  // Phase 2: Referral
+  referral: {
+    title: {
+      en: "Refer a Friend",
+      bn: "বন্ধুকে রেফার করুন",
+    },
+    yourCode: {
+      en: "Your Referral Code",
+      bn: "আপনার রেফারেল কোড",
+    },
+    shareCode: {
+      en: "Share this code with friends",
+      bn: "এই কোড বন্ধুদের সাথে শেয়ার করুন",
+    },
+    copyCode: {
+      en: "Copy Code",
+      bn: "কোড কপি করুন",
+    },
+    copied: {
+      en: "Copied!",
+      bn: "কপি হয়েছে!",
+    },
+    totalReferrals: {
+      en: "Total Referrals",
+      bn: "মোট রেফারেল",
+    },
+    enterReferralCode: {
+      en: "Enter Referral Code",
+      bn: "রেফারেল কোড দিন",
+    },
+    applyCode: {
+      en: "Apply Code",
+      bn: "কোড ব্যবহার করুন",
+    },
+    referralApplied: {
+      en: "Referral code applied successfully!",
+      bn: "রেফারেল কোড সফলভাবে ব্যবহার হয়েছে!",
+    },
+    invalidCode: {
+      en: "Invalid referral code",
+      bn: "ভুল রেফারেল কোড",
+    },
+  },
+
+  // Phase 2: Badges
+  badges: {
+    title: {
+      en: "Your Badges",
+      bn: "আপনার ব্যাজ",
+    },
+    noBadges: {
+      en: "No badges yet",
+      bn: "এখনো কোনো ব্যাজ নেই",
+    },
+    earnBadges: {
+      en: "Use coupons and explore restaurants to earn badges!",
+      bn: "কুপন ব্যবহার করুন এবং রেস্টুরেন্ট দেখুন ব্যাজ পেতে!",
+    },
+    couponsUsed: {
+      en: "Coupons Used",
+      bn: "কুপন ব্যবহার",
+    },
+    restaurantsTried: {
+      en: "Restaurants Tried",
+      bn: "রেস্টুরেন্ট দেখা হয়েছে",
+    },
+  },
+
+  // Phase 2: Profile/Stats
+  profile: {
+    title: {
+      en: "My Profile",
+      bn: "আমার প্রোফাইল",
+    },
+    stats: {
+      en: "Your Stats",
+      bn: "আপনার পরিসংখ্যান",
+    },
+  },
 } as const;
 
 /**

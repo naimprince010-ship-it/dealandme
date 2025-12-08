@@ -53,6 +53,16 @@ export default function CustomerNav() {
             >
               {t("nav", "myCoupons")}
             </Link>
+            <Link
+              href="/profile"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive("/profile")
+                  ? "bg-indigo-100 text-indigo-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {t("profile", "title")}
+            </Link>
             <button
               onClick={handleLogout}
               disabled={loggingOut}
