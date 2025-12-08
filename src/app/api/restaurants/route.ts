@@ -24,10 +24,16 @@ export async function GET() {
     });
 
     // Filter to only include restaurants with active offers
+    // Also exclude sensitive fields like passwordHash
     const restaurants = allRestaurants.filter(
       (r) => r.offer && r.offer.isActive
     ).map((r) => ({
-      ...r,
+      id: r.id,
+      name: r.name,
+      area: r.area,
+      description: r.description,
+      isActive: r.isActive,
+      createdAt: r.createdAt,
       offer: r.offer ? { id: r.offer.id, offerText: r.offer.offerText } : null,
     }));
 
