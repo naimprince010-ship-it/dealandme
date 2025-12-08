@@ -9,6 +9,14 @@ interface Offer {
   id: string;
   offerText: string;
   isActive: boolean;
+  discountType: "PERCENTAGE" | "FLAT" | null;
+  discountValue: number | null;
+  maxDiscountAmount: number | null;
+  title: string | null;
+  description: string | null;
+  terms: string | null;
+  photoUrl: string | null;
+  updatedAt: string;
 }
 
 interface Restaurant {
@@ -18,6 +26,7 @@ interface Restaurant {
   description: string | null;
   username: string;
   isActive: boolean;
+  offPeakBoost: boolean;
   offer: Offer | null;
   createdAt: string;
 }
@@ -284,8 +293,107 @@ export default function EditRestaurant() {
           </div>
         </form>
 
+        {/* Structured Offer Display (Read-only) */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Offer Details</h3>
+          
+          {restaurant.offer ? (
+            <div className="space-y-4">
+              {/* Status Badges */}
+              <div className="flex flex-wrap gap-2">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  restaurant.offer.isActive 
+                    ? "bg-green-100 text-green-700" 
+                    : "bg-gray-100 text-gray-600"
+                }`}>
+                  {restaurant.offer.isActive ? "Active" : "Paused"}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  restaurant.offPeakBoost 
+                    ? "bg-orange-100 text-orange-700" 
+                    : "bg-gray-100 text-gray-600"
+                }`}>
+                  Off-peak Boost: {restaurant.offPeakBoost ? "ON" : "OFF"}
+                </span>
+              </div>
+
+              {/* Title */}
+              {restaurant.offer.title && (
+                <div>
+                  <p className="text-sm text-gray-500">Title</p>
+                  <p className="text-lg font-semibold text-gray-900">{restaurant.offer.title}</p>
+                </div>
+              )}
+
+              {/* Discount Summary */}
+              <div>
+                <p className="text-sm text-gray-500">Discount</p>
+                <p className="text-lg font-semibold text-purple-600">
+                  {restaurant.offer.discountType === "PERCENTAGE" && restaurant.offer.discountValue
+                    ? `${restaurant.offer.discountValue}% off${restaurant.offer.maxDiscountAmount ? ` (Up to ৳${restaurant.offer.maxDiscountAmount})` : ""}`
+                    : restaurant.offer.discountType === "FLAT" && restaurant.offer.discountValue
+                    ? `৳${restaurant.offer.discountValue} off`
+                    : restaurant.offer.offerText || "No discount set"}
+                </p>
+              </div>
+
+              {/* Description */}
+              {restaurant.offer.description && (
+                <div>
+                  <p className="text-sm text-gray-500">Description</p>
+                  <p className="text-gray-700">{restaurant.offer.description}</p>
+                </div>
+              )}
+
+              {/* Terms */}
+              {restaurant.offer.terms && (
+                <div>
+                  <p className="text-sm text-gray-500">Terms & Conditions</p>
+                  <p className="text-gray-700">{restaurant.offer.terms}</p>
+                </div>
+              )}
+
+              {/* Photo */}
+              {restaurant.offer.photoUrl && (
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Photo</p>
+                  <img 
+                    src={restaurant.offer.photoUrl} 
+                    alt="Offer" 
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                  />
+                </div>
+              )}
+
+              {/* Legacy Offer Text (if no structured fields) */}
+              {!restaurant.offer.title && !restaurant.offer.discountType && restaurant.offer.offerText && (
+                <div>
+                  <p className="text-sm text-gray-500">Offer Text (Legacy)</p>
+                  <p className="text-gray-700">{restaurant.offer.offerText}</p>
+                </div>
+              )}
+
+              {/* Last Updated */}
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-xs text-gray-400">
+                  Last updated: {new Date(restaurant.offer.updatedAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No active offer</p>
+              <p className="text-sm text-gray-400 mt-1">Create an offer using the form below</p>
+            </div>
+          )}
+        </div>
+
+        {/* Offer Edit Form (for quick updates) */}
         <form onSubmit={handleOfferSubmit} className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Offer Management</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Offer Update</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            For full offer editing with structured fields, the restaurant owner can use their dashboard.
+          </p>
           
           <div className="space-y-6">
             <div>
