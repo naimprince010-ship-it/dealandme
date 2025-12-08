@@ -42,21 +42,25 @@ model User {
 
 // Restaurant partners
 model Restaurant {
-  id           String   @id @default(uuid())
-  name         String
-  area         String
-  description  String?
-  username     String   @unique
-  passwordHash String   @map("password_hash")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  name            String
+  area            String
+  description     String?
+  username        String   @unique
+  passwordHash    String   @map("password_hash")
+  isActive        Boolean  @default(true) @map("is_active")
+  offPeakBoost    Boolean  @default(false) @map("off_peak_boost")
+  commissionRate  Float    @default(10.0) @map("commission_rate")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  offer     Offer?
-  coupons   Coupon[]
-  favorites Favorite[]
+  offer       Offer?
+  coupons     Coupon[]
+  favorites   Favorite[]
+  commissions Commission[]
 
   @@index([area, isActive])
+  @@index([offPeakBoost, isActive])
   @@map("restaurants")
 }
 
@@ -165,4 +169,22 @@ model Referral {
   @@unique([referredId])
   @@index([referrerId])
   @@map("referrals")
+}
+
+// Commission tracking for manual billing
+model Commission {
+  id           String   @id @default(uuid())
+  restaurantId String   @map("restaurant_id")
+  couponId     String   @map("coupon_id")
+  amount       Float
+  isPaid       Boolean  @default(false) @map("is_paid")
+  paidAt       DateTime? @map("paid_at")
+  billingMonth String   @map("billing_month")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, billingMonth])
+  @@index([isPaid])
+  @@map("commissions")
 }

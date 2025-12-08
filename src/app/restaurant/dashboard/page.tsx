@@ -20,12 +20,41 @@ interface DailyStats {
   expired: number;
 }
 
+interface Offer {
+  id: string;
+  offerText: string;
+  isActive: boolean;
+}
+
+interface Analytics {
+  summary: {
+    todayRedeemed: number;
+    thisWeekRedeemed: number;
+    lastWeekRedeemed: number;
+    thisMonthRedeemed: number;
+    totalRedeemed: number;
+    conversionRate: number;
+  };
+  customers: {
+    uniqueCustomers: number;
+    repeatCustomers: number;
+    newCustomers: number;
+    repeatRate: number;
+  };
+}
+
 export default function RestaurantDashboard() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [offPeakBoost, setOffPeakBoost] = useState(false);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingOffer, setEditingOffer] = useState(false);
+  const [newOfferText, setNewOfferText] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,11 +69,30 @@ export default function RestaurantDashboard() {
 
         setRestaurant(data.user);
         
-        // Fetch daily stats
-        const statsRes = await fetch("/api/restaurant/daily-stats");
+        // Fetch daily stats, offer, and analytics in parallel
+        const [statsRes, offerRes, analyticsRes] = await Promise.all([
+          fetch("/api/restaurant/daily-stats"),
+          fetch("/api/restaurant/offer"),
+          fetch("/api/restaurant/analytics"),
+        ]);
+
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           setDailyStats(statsData.stats);
+        }
+
+        if (offerRes.ok) {
+          const offerData = await offerRes.json();
+          setOffer(offerData.offer);
+          setOffPeakBoost(offerData.offPeakBoost || false);
+          if (offerData.offer) {
+            setNewOfferText(offerData.offer.offerText);
+          }
+        }
+
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json();
+          setAnalytics(analyticsData);
         }
       } catch {
         router.push("/restaurant/login");
@@ -55,6 +103,65 @@ export default function RestaurantDashboard() {
 
     checkAuth();
   }, [router]);
+
+  const toggleOfferActive = async () => {
+    if (!offer) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/restaurant/offer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !offer.isActive }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOffer(data.offer);
+      }
+    } catch (error) {
+      console.error("Toggle offer error:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveOfferText = async () => {
+    if (!newOfferText.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/restaurant/offer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerText: newOfferText }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOffer(data.offer);
+        setEditingOffer(false);
+      }
+    } catch (error) {
+      console.error("Save offer error:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleOffPeakBoost = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/restaurant/offer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offPeakBoost: !offPeakBoost }),
+      });
+      if (res.ok) {
+        setOffPeakBoost(!offPeakBoost);
+      }
+    } catch (error) {
+      console.error("Toggle off-peak boost error:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -99,6 +206,158 @@ export default function RestaurantDashboard() {
               <div className="bg-white/20 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-red-200">{dailyStats.expired}</p>
                 <p className="text-sm opacity-90">{t("dashboard", "expired")}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Offer Management Section */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {language === "bn" ? "আপনার অফার" : "Your Offer"}
+            </h2>
+            {offer && (
+              <button
+                onClick={toggleOfferActive}
+                disabled={saving}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  offer.isActive
+                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
+                }`}
+              >
+                {offer.isActive 
+                  ? (language === "bn" ? "সক্রিয়" : "Active") 
+                  : (language === "bn" ? "বিরতি" : "Paused")}
+              </button>
+            )}
+          </div>
+          
+          {offer ? (
+            <div>
+              {editingOffer ? (
+                <div className="space-y-3">
+                  <textarea
+                    value={newOfferText}
+                    onChange={(e) => setNewOfferText(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    rows={3}
+                    placeholder={language === "bn" ? "অফার টেক্সট লিখুন..." : "Enter offer text..."}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={saveOfferText}
+                      disabled={saving}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {saving ? "..." : (language === "bn" ? "সেভ করুন" : "Save")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingOffer(false);
+                        setNewOfferText(offer.offerText);
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      {language === "bn" ? "বাতিল" : "Cancel"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="bg-indigo-50 text-indigo-700 px-4 py-3 rounded-lg flex-1 mr-4">
+                    <span className="mr-2">🎁</span>
+                    {offer.offerText}
+                  </div>
+                  <button
+                    onClick={() => setEditingOffer(true)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  >
+                    {language === "bn" ? "এডিট" : "Edit"}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              {language === "bn" ? "কোনো অফার নেই" : "No offer set"}
+            </p>
+          )}
+        </div>
+
+        {/* Off-Peak Boost Toggle */}
+        <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 mb-6 border border-orange-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                <span>🚀</span>
+                {language === "bn" ? "অফ-পিক বুস্ট" : "Off-Peak Boost"}
+              </h3>
+              <p className="text-orange-700 text-sm mt-1">
+                {language === "bn" 
+                  ? "৩-৬টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
+                  : "Get priority visibility during 3-6pm"}
+              </p>
+            </div>
+            <button
+              onClick={toggleOffPeakBoost}
+              disabled={saving}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                offPeakBoost ? "bg-orange-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  offPeakBoost ? "translate-x-7" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Analytics Section */}
+        {analytics && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span>📈</span>
+              {language === "bn" ? "সাপ্তাহিক পরিসংখ্যান" : "Weekly Analytics"}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{analytics.summary.thisWeekRedeemed}</p>
+                <p className="text-sm text-gray-600">{language === "bn" ? "এই সপ্তাহ" : "This Week"}</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{analytics.summary.lastWeekRedeemed}</p>
+                <p className="text-sm text-gray-600">{language === "bn" ? "গত সপ্তাহ" : "Last Week"}</p>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <p className="text-2xl font-bold text-purple-600">{analytics.summary.conversionRate}%</p>
+                <p className="text-sm text-gray-600">{language === "bn" ? "কনভার্শন" : "Conversion"}</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <p className="text-2xl font-bold text-orange-600">{analytics.customers.repeatRate}%</p>
+                <p className="text-sm text-gray-600">{language === "bn" ? "রিপিট কাস্টমার" : "Repeat Rate"}</p>
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                {language === "bn" ? "কাস্টমার বিশ্লেষণ" : "Customer Breakdown"}
+              </h3>
+              <div className="flex gap-6">
+                <div>
+                  <span className="text-2xl font-bold text-indigo-600">{analytics.customers.uniqueCustomers}</span>
+                  <span className="text-sm text-gray-500 ml-2">{language === "bn" ? "মোট কাস্টমার" : "Total Customers"}</span>
+                </div>
+                <div>
+                  <span className="text-2xl font-bold text-green-600">{analytics.customers.repeatCustomers}</span>
+                  <span className="text-sm text-gray-500 ml-2">{language === "bn" ? "রিপিট" : "Repeat"}</span>
+                </div>
+                <div>
+                  <span className="text-2xl font-bold text-blue-600">{analytics.customers.newCustomers}</span>
+                  <span className="text-sm text-gray-500 ml-2">{language === "bn" ? "নতুন" : "New"}</span>
+                </div>
               </div>
             </div>
           </div>
