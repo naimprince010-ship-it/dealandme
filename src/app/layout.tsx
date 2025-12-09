@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { LanguageProvider } from "@/lib/LanguageContext";
 
 const inter = Inter({ subsets: ["latin"] });
+const hindSiliguri = Hind_Siliguri({ 
+  weight: ["400", "500", "600", "700"],
+  subsets: ["bengali", "latin"],
+  variable: "--font-bangla",
+});
 
 export const metadata: Metadata = {
   title: "Dealbox - Local Restaurant Discounts",
@@ -35,7 +40,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn">
-      <body className={`${inter.className} antialiased bg-gray-50 min-h-screen`}>
+      <body className={`${inter.className} ${hindSiliguri.variable} antialiased bg-gray-50 min-h-screen`}>
         <ServiceWorkerRegistration />
         <LanguageProvider>
           {children}

@@ -24,69 +24,77 @@ export const translations = {
     bn: "পেছনে",
   },
 
-  // Login Page
-  login: {
-    title: {
-      en: "Enter your phone number",
-      bn: "আপনার ফোন নম্বর দিন",
+    // Login Page
+    login: {
+      welcome: {
+        en: "Welcome!",
+        bn: "স্বাগতম!",
+      },
+      title: {
+        en: "Enter your phone number",
+        bn: "আপনার ফোন নম্বর দিন",
+      },
+      subtitle: {
+        en: "Enter your mobile number to get started.",
+        bn: "শুরু করতে আপনার মোবাইল নম্বর দিন।",
+      },
+      phoneLabel: {
+        en: "Phone Number",
+        bn: "ফোন নম্বর",
+      },
+      phonePlaceholder: {
+        en: "1XXXXXXXXX",
+        bn: "১XXXXXXXXX",
+      },
+      sendOtp: {
+        en: "Send OTP",
+        bn: "OTP পাঠান",
+      },
+      sending: {
+        en: "Sending...",
+        bn: "পাঠানো হচ্ছে...",
+      },
+      otpTitle: {
+        en: "Enter OTP",
+        bn: "OTP দিন",
+      },
+      otpSubtitle: {
+        en: "Enter the 6-digit code sent to your phone",
+        bn: "আপনার ফোনে পাঠানো ৬ সংখ্যার কোড দিন",
+      },
+      otpSentTo: {
+        en: "OTP sent to",
+        bn: "OTP পাঠানো হয়েছে",
+      },
+      change: {
+        en: "Change",
+        bn: "পরিবর্তন",
+      },
+      otpLabel: {
+        en: "OTP Code",
+        bn: "OTP কোড",
+      },
+      otpPlaceholder: {
+        en: "Enter 6-digit OTP",
+        bn: "৬ সংখ্যার OTP দিন",
+      },
+      verifyOtp: {
+        en: "Verify OTP",
+        bn: "OTP যাচাই করুন",
+      },
+      verifying: {
+        en: "Verifying...",
+        bn: "যাচাই হচ্ছে...",
+      },
+      testOtpHint: {
+        en: "For testing, use OTP: 123456",
+        bn: "টেস্টিং এর জন্য OTP: ১২৩৪৫৬ ব্যবহার করুন",
+      },
+      termsText: {
+        en: "By proceeding, you agree to our terms and conditions.",
+        bn: "এগিয়ে যাওয়ার মাধ্যমে আপনি আমাদের শর্তাবলী মেনে নিচ্ছেন।",
+      },
     },
-    subtitle: {
-      en: "We'll send you a one-time password",
-      bn: "আমরা আপনাকে একটি OTP পাঠাবো",
-    },
-    phoneLabel: {
-      en: "Phone Number",
-      bn: "ফোন নম্বর",
-    },
-    phonePlaceholder: {
-      en: "Enter your phone number (01XXXXXXXXX)",
-      bn: "আপনার ফোন নম্বর দিন (০১XXXXXXXXX)",
-    },
-    sendOtp: {
-      en: "Send OTP",
-      bn: "OTP পাঠান",
-    },
-    sending: {
-      en: "Sending...",
-      bn: "পাঠানো হচ্ছে...",
-    },
-    otpTitle: {
-      en: "Enter OTP",
-      bn: "OTP দিন",
-    },
-    otpSubtitle: {
-      en: "Enter the 6-digit code sent to your phone",
-      bn: "আপনার ফোনে পাঠানো ৬ সংখ্যার কোড দিন",
-    },
-    otpSentTo: {
-      en: "OTP sent to",
-      bn: "OTP পাঠানো হয়েছে",
-    },
-    change: {
-      en: "Change",
-      bn: "পরিবর্তন",
-    },
-    otpLabel: {
-      en: "OTP Code",
-      bn: "OTP কোড",
-    },
-    otpPlaceholder: {
-      en: "Enter 6-digit OTP",
-      bn: "৬ সংখ্যার OTP দিন",
-    },
-    verifyOtp: {
-      en: "Verify OTP",
-      bn: "OTP যাচাই করুন",
-    },
-    verifying: {
-      en: "Verifying...",
-      bn: "যাচাই হচ্ছে...",
-    },
-    testOtpHint: {
-      en: "For testing, use OTP: 123456",
-      bn: "টেস্টিং এর জন্য OTP: ১২৩৪৫৬ ব্যবহার করুন",
-    },
-  },
 
   // Restaurants Page
   restaurants: {

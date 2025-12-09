@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
+import LoginLogoMark from "@/components/LoginLogoMark";
+import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 
 export default function CustomerLogin() {
   const router = useRouter();
@@ -15,16 +16,23 @@ export default function CustomerLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Validate phone number: must start with 1 and be 10 digits total (1XXXXXXXXX)
+  const isValidPhone = /^1[3-9]\d{8}$/.test(phone);
+
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidPhone) return;
+    
     setLoading(true);
     setError("");
 
     try {
+      // Send phone with +880 prefix
+      const fullPhone = `+880${phone}`;
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone: fullPhone }),
       });
 
       const data = await res.json();
@@ -47,10 +55,11 @@ export default function CustomerLogin() {
     setError("");
 
     try {
+      const fullPhone = `+880${phone}`;
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, otp }),
+        body: JSON.stringify({ phone: fullPhone, otp }),
       });
 
       const data = await res.json();
@@ -68,103 +77,166 @@ export default function CustomerLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="absolute top-4 right-4">
-          <LanguageToggle />
-        </div>
-        <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-indigo-600">
-            {t("appName", "en")}
-          </Link>
-          <h2 className="mt-4 text-2xl font-bold text-gray-900">
-            {step === "phone" ? t("login", "title") : t("login", "otpTitle")}
-          </h2>
-          <p className="mt-2 text-gray-600">
-            {step === "phone"
-              ? t("login", "subtitle")
-              : t("login", "otpSubtitle")}
-          </p>
-        </div>
+    <div className="min-h-screen relative overflow-hidden" style={{
+      background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
+    }}>
+      {/* Background Pattern */}
+      <LoginBackgroundPattern />
+      
+      {/* Language Toggle */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageToggle />
+      </div>
 
-        <div className="bg-white py-8 px-6 shadow-sm rounded-xl">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+      {/* Main Content */}
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <LoginLogoMark />
+          </div>
 
-          {step === "phone" ? (
-            <form onSubmit={handleRequestOtp}>
-              <div className="mb-6">
-                <label
-                  htmlFor="phone"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  {t("login", "phoneLabel")}
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t("login", "phonePlaceholder")}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? t("login", "sending") : t("login", "sendOtp")}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp}>
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-4">
-                  {t("login", "otpSentTo")} {phone}
+          {/* Card */}
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 p-8">
+            {step === "phone" ? (
+              <>
+                {/* Welcome Text */}
+                <h1 className="text-4xl font-bold text-center text-gray-800 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "welcome")}
+                </h1>
+                <p className="text-center text-gray-600 mb-8" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "subtitle")}
+                </p>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* Phone Input Form */}
+                <form onSubmit={handleRequestOtp}>
+                  <div className="mb-6">
+                    <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+                      {/* Country Code */}
+                      <div className="flex items-center px-4 py-3 bg-gray-50 border-r border-gray-200">
+                        <span className="text-xl mr-2">🇧🇩</span>
+                        <span className="text-gray-700 font-medium">+৮৮০</span>
+                      </div>
+                      {/* Phone Input */}
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={phone}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          if (value.length <= 10) {
+                            setPhone(value);
+                          }
+                        }}
+                        placeholder={t("login", "phonePlaceholder")}
+                        className="flex-1 px-4 py-3 text-lg focus:outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading || !isValidPhone}
+                    className="w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: isValidPhone && !loading 
+                        ? "linear-gradient(135deg, #5BA88B 0%, #4A9A7C 100%)" 
+                        : "#d1d5db",
+                      color: isValidPhone && !loading ? "white" : "#9ca3af",
+                      fontFamily: "var(--font-bangla), sans-serif"
+                    }}
+                  >
+                    {loading ? t("login", "sending") : t("login", "sendOtp")}
+                  </button>
+                </form>
+
+                {/* Terms Text */}
+                <p className="text-center text-gray-500 text-sm mt-6" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "termsText")}
+                </p>
+              </>
+            ) : (
+              <>
+                {/* OTP Step */}
+                <h1 className="text-3xl font-bold text-center text-gray-800 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "otpTitle")}
+                </h1>
+                <p className="text-center text-gray-600 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "otpSubtitle")}
+                </p>
+                <p className="text-center text-gray-600 mb-6">
+                  <span className="font-medium">+880{phone}</span>
                   <button
                     type="button"
                     onClick={() => setStep("phone")}
-                    className="ml-2 text-indigo-600 hover:underline"
+                    className="ml-2 text-emerald-600 hover:underline"
+                    style={{ fontFamily: "var(--font-bangla), sans-serif" }}
                   >
                     {t("login", "change")}
                   </button>
                 </p>
-              </div>
-              <div className="mb-6">
-                <label
-                  htmlFor="otp"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  {t("login", "otpLabel")}
-                </label>
-                <input
-                  type="text"
-                  id="otp"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder={t("login", "otpPlaceholder")}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-center text-2xl tracking-widest"
-                  maxLength={6}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? t("login", "verifying") : t("login", "verifyOtp")}
-              </button>
-            </form>
-          )}
 
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>{t("login", "testOtpHint")}</p>
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* OTP Input Form */}
+                <form onSubmit={handleVerifyOtp}>
+                  <div className="mb-6">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={otp}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        if (value.length <= 6) {
+                          setOtp(value);
+                        }
+                      }}
+                      placeholder={t("login", "otpPlaceholder")}
+                      className="w-full px-4 py-4 border border-gray-200 rounded-xl text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading || otp.length !== 6}
+                    className="w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: otp.length === 6 && !loading 
+                        ? "linear-gradient(135deg, #5BA88B 0%, #4A9A7C 100%)" 
+                        : "#d1d5db",
+                      color: otp.length === 6 && !loading ? "white" : "#9ca3af",
+                      fontFamily: "var(--font-bangla), sans-serif"
+                    }}
+                  >
+                    {loading ? t("login", "verifying") : t("login", "verifyOtp")}
+                  </button>
+                </form>
+
+                {/* Test OTP Hint */}
+                <p className="text-center text-gray-500 text-sm mt-6" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {t("login", "testOtpHint")}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
