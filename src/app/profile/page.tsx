@@ -38,7 +38,6 @@ export default function ProfilePage() {
   const { language, setLanguage } = useLanguage();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsSupported, setNotificationsSupported] = useState(false);
@@ -169,22 +168,6 @@ export default function ProfilePage() {
     }
     return window.btoa(binary);
   }
-
-  const shareReferralCode = () => {
-    if (stats?.referralCode && navigator.share) {
-      navigator.share({
-        title: "Dealandme",
-        text: language === "bn" 
-          ? `Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: ${stats.referralCode}`
-          : `Join Dealandme and get restaurant discounts! My referral code: ${stats.referralCode}`,
-        url: "https://www.dealandme.com",
-      });
-    } else if (stats?.referralCode) {
-      navigator.clipboard.writeText(stats.referralCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -390,23 +373,16 @@ export default function ProfilePage() {
 
           {/* Refer a Friend */}
           <button 
-            onClick={shareReferralCode}
+            onClick={() => router.push("/refer")}
             className="w-full flex items-center justify-between p-4 border-b border-gray-100 active:bg-gray-50"
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">🎁</span>
               <span className="text-gray-800">{language === "bn" ? "বন্ধুকে রেফার করুন" : "Refer a Friend"}</span>
             </div>
-            <div className="flex items-center gap-2">
-              {copied && (
-                <span className="text-xs text-emerald-600 font-medium">
-                  {language === "bn" ? "কপি হয়েছে!" : "Copied!"}
-                </span>
-              )}
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
 
           {/* Language Change */}
