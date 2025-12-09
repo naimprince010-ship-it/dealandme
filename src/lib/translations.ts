@@ -360,33 +360,153 @@ export const translations = {
     },
   },
 
-  // Navigation
-  nav: {
-    restaurants: {
-      en: "Restaurants",
-      bn: "রেস্টুরেন্ট",
+    // Navigation
+    nav: {
+      restaurants: {
+        en: "Restaurants",
+        bn: "রেস্টুরেন্ট",
+      },
+      myCoupons: {
+        en: "My Coupons",
+        bn: "আমার কুপন",
+      },
+      logout: {
+        en: "Logout",
+        bn: "লগআউট",
+      },
+      dashboard: {
+        en: "Dashboard",
+        bn: "ড্যাশবোর্ড",
+      },
+      validate: {
+        en: "Validate",
+        bn: "যাচাই",
+      },
+      history: {
+        en: "History",
+        bn: "ইতিহাস",
+      },
     },
-    myCoupons: {
-      en: "My Coupons",
-      bn: "আমার কুপন",
+
+    // Bottom Navigation
+    bottomNav: {
+      home: {
+        en: "Home",
+        bn: "হোম",
+      },
+      search: {
+        en: "Search",
+        bn: "খুঁজুন",
+      },
+      myCoupons: {
+        en: "Coupons",
+        bn: "কুপন",
+      },
+      profile: {
+        en: "Profile",
+        bn: "প্রোফাইল",
+      },
     },
-    logout: {
-      en: "Logout",
-      bn: "লগআউট",
+
+    // Home Screen
+    home: {
+      greeting: {
+        en: "Hello",
+        bn: "হ্যালো",
+      },
+      searchPlaceholder: {
+        en: "Search restaurants...",
+        bn: "রেস্টুরেন্ট খুঁজুন...",
+      },
+      featuredDeals: {
+        en: "Featured Deals",
+        bn: "সেরা ডিল",
+      },
+      seeAll: {
+        en: "See All",
+        bn: "সবগুলো",
+      },
+      popularRestaurants: {
+        en: "Popular Restaurants",
+        bn: "জনপ্রিয় রেস্টুরেন্ট",
+      },
+      nearbyRestaurants: {
+        en: "Nearby Restaurants",
+        bn: "কাছের রেস্টুরেন্ট",
+      },
+      bookNow: {
+        en: "Book Now",
+        bn: "বুক করুন",
+      },
+      off: {
+        en: "off",
+        bn: "ছাড়",
+      },
+      locationPermission: {
+        en: "Enable location for nearby restaurants",
+        bn: "কাছের রেস্টুরেন্ট দেখতে লোকেশন চালু করুন",
+      },
+      noFeaturedDeals: {
+        en: "No featured deals available",
+        bn: "কোনো সেরা ডিল নেই",
+      },
+      noPopularRestaurants: {
+        en: "No popular restaurants",
+        bn: "কোনো জনপ্রিয় রেস্টুরেন্ট নেই",
+      },
     },
-    dashboard: {
-      en: "Dashboard",
-      bn: "ড্যাশবোর্ড",
+
+    // Categories
+    categories: {
+      nearMe: {
+        en: "Near Me",
+        bn: "কাছে",
+      },
+      buffet: {
+        en: "Buffet",
+        bn: "বুফে",
+      },
+      cafe: {
+        en: "Cafe",
+        bn: "ক্যাফে",
+      },
+      diler: {
+        en: "Diler",
+        bn: "ডিলার",
+      },
+      cooking: {
+        en: "Cooking",
+        bn: "রান্না",
+      },
+      stoas: {
+        en: "Stoas",
+        bn: "স্টোয়াস",
+      },
+      fastFood: {
+        en: "Fast Food",
+        bn: "ফাস্ট ফুড",
+      },
+      chinese: {
+        en: "Chinese",
+        bn: "চাইনিজ",
+      },
+      indian: {
+        en: "Indian",
+        bn: "ইন্ডিয়ান",
+      },
+      thai: {
+        en: "Thai",
+        bn: "থাই",
+      },
+      dessert: {
+        en: "Dessert",
+        bn: "ডেজার্ট",
+      },
+      pizza: {
+        en: "Pizza",
+        bn: "পিজ্জা",
+      },
     },
-    validate: {
-      en: "Validate",
-      bn: "যাচাই",
-    },
-    history: {
-      en: "History",
-      bn: "ইতিহাস",
-    },
-  },
 
   // Errors
   errors: {

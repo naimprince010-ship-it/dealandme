@@ -30,18 +30,28 @@ export default function AdminNav() {
             Dealbox Admin
           </Link>
           <div className="flex items-center gap-1">
-            <Link
-              href="/admin/dashboard"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === "/admin/dashboard"
-                  ? "bg-purple-100 text-purple-700"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/admin/restaurants"
+                        <Link
+                          href="/admin/dashboard"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            pathname === "/admin/dashboard"
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/admin/home"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive("/admin/home")
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          Home Screen
+                        </Link>
+                        <Link
+                          href="/admin/restaurants"
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive("/admin/restaurants")
                   ? "bg-purple-100 text-purple-700"
