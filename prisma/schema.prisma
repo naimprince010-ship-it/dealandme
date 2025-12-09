@@ -64,6 +64,12 @@ model Restaurant {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
+  // Home screen display flags (admin-managed)
+  isPopular          Boolean @default(false) @map("is_popular")
+  popularSortOrder   Int?    @map("popular_sort_order")
+  latitude           Float?
+  longitude          Float?
+
   offer        Offer?
   coupons      Coupon[]
   favorites    Favorite[]
@@ -74,6 +80,7 @@ model Restaurant {
   @@index([area, isActive])
   @@index([offPeakBoost, isActive])
   @@index([paymentOverdue])
+  @@index([isPopular, popularSortOrder])
   @@map("restaurants")
 }
 
@@ -95,9 +102,14 @@ model Offer {
   terms             String?
   photoUrl          String?       @map("photo_url")
 
+  // Home screen featured deals (admin-managed)
+  isFeatured        Boolean @default(false) @map("is_featured")
+  featuredSortOrder Int?    @map("featured_sort_order")
+
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   coupons    Coupon[]
 
+  @@index([isFeatured, featuredSortOrder])
   @@map("offers")
 }
 
@@ -278,4 +290,21 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// Home screen categories (Near Me, Buffet, Cafe, etc.)
+model HomeCategory {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  labelEn   String   @map("label_en")
+  labelBn   String   @map("label_bn")
+  iconKey   String   @map("icon_key")
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  isSystem  Boolean  @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder])
+  @@map("home_categories")
 }

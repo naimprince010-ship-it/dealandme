@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import CustomerNav from "@/components/CustomerNav";
+import BottomNav from "@/components/BottomNav";
 
 interface Coupon {
   id: string;
@@ -109,11 +109,9 @@ export default function MyCouponsPage() {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <CustomerNav />
-
-      <main className="max-w-4xl mx-auto px-4 py-6">
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <main className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">My Coupons</h1>
 
         {error && (
@@ -192,6 +190,7 @@ export default function MyCouponsPage() {
           </div>
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }

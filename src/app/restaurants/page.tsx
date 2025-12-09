@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import CustomerNav from "@/components/CustomerNav";
+import BottomNav from "@/components/BottomNav";
 import { useLanguage } from "@/lib/LanguageContext";
 
 interface Restaurant {
@@ -188,31 +188,29 @@ export default function RestaurantsPage() {
 
   const areas = Object.keys(groupedRestaurants);
 
-  if (areas.length === 0) {
+    if (areas.length === 0) {
+      return (
+        <div className="min-h-screen bg-gray-50 pb-20">
+          <main className="max-w-4xl mx-auto px-4 py-8">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">{t("restaurants", "browseTitle")}</h1>
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🍽️</div>
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                {t("restaurants", "noRestaurants")}
+              </h2>
+              <p className="text-gray-500">
+                {language === "bn" ? "পরে আবার দেখুন!" : "Check back later for exciting deals!"}
+              </p>
+            </div>
+          </main>
+          <BottomNav />
+        </div>
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-gray-50">
-        <CustomerNav />
-        <main className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">{t("restaurants", "browseTitle")}</h1>
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🍽️</div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              {t("restaurants", "noRestaurants")}
-            </h2>
-            <p className="text-gray-500">
-              {language === "bn" ? "পরে আবার দেখুন!" : "Check back later for exciting deals!"}
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <CustomerNav />
-
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <main className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
           {t("restaurants", "browseTitle")}
         </h1>
@@ -357,6 +355,7 @@ export default function RestaurantsPage() {
           ))
         )}
       </main>
+      <BottomNav />
     </div>
   );
 }
