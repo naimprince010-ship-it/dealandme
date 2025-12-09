@@ -1,53 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { formatOfferText, isOffPeakHours } from "@/lib/offer";
+import { getRestaurant } from "@/lib/auth";
 
 // GET - Get restaurant's current offer
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
+    const restaurant = await getRestaurant();
 
-    if (!sessionCookie) {
+    if (!restaurant) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "RESTAURANT") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: session.id },
+    const restaurantWithOffer = await prisma.restaurant.findUnique({
+      where: { id: restaurant.id },
       include: {
         offer: true,
       },
     });
 
-    if (!restaurant) {
+    if (!restaurantWithOffer) {
       return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      offer: restaurant.offer
+      offer: restaurantWithOffer.offer
         ? {
-            id: restaurant.offer.id,
-            offerText: restaurant.offer.offerText,
-            isActive: restaurant.offer.isActive,
-            discountType: restaurant.offer.discountType,
-            discountValue: restaurant.offer.discountValue,
-            maxDiscountAmount: restaurant.offer.maxDiscountAmount,
-            title: restaurant.offer.title,
-            description: restaurant.offer.description,
-            terms: restaurant.offer.terms,
-            photoUrl: restaurant.offer.photoUrl,
-            createdAt: restaurant.offer.createdAt,
-            updatedAt: restaurant.offer.updatedAt,
+            id: restaurantWithOffer.offer.id,
+            offerText: restaurantWithOffer.offer.offerText,
+            isActive: restaurantWithOffer.offer.isActive,
+            discountType: restaurantWithOffer.offer.discountType,
+            discountValue: restaurantWithOffer.offer.discountValue,
+            maxDiscountAmount: restaurantWithOffer.offer.maxDiscountAmount,
+            title: restaurantWithOffer.offer.title,
+            description: restaurantWithOffer.offer.description,
+            terms: restaurantWithOffer.offer.terms,
+            photoUrl: restaurantWithOffer.offer.photoUrl,
+            createdAt: restaurantWithOffer.offer.createdAt,
+            updatedAt: restaurantWithOffer.offer.updatedAt,
           }
         : null,
-      offPeakBoost: restaurant.offPeakBoost,
+      offPeakBoost: restaurantWithOffer.offPeakBoost,
       isOffPeakNow: isOffPeakHours(),
     });
   } catch (error) {
@@ -62,16 +55,9 @@ export async function GET() {
 // PUT - Update offer with structured fields
 export async function PUT(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
+    const restaurant = await getRestaurant();
 
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "RESTAURANT") {
+    if (!restaurant) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -112,19 +98,19 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get restaurant with offer
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: session.id },
+    const restaurantWithOffer = await prisma.restaurant.findUnique({
+      where: { id: restaurant.id },
       include: { offer: true },
     });
 
-    if (!restaurant) {
+    if (!restaurantWithOffer) {
       return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
     }
 
     // Update off-peak boost setting if provided
     if (typeof offPeakBoost === "boolean") {
       await prisma.restaurant.update({
-        where: { id: session.id },
+        where: { id: restaurant.id },
         data: { offPeakBoost },
       });
     }
@@ -141,7 +127,7 @@ export async function PUT(request: NextRequest) {
     const finalOfferText = generatedOfferText || offerText || title || "";
 
     // If no offer exists, create one
-    if (!restaurant.offer) {
+    if (!restaurantWithOffer.offer) {
       if (!finalOfferText) {
         return NextResponse.json(
           { error: "Offer details required to create offer" },
@@ -151,7 +137,7 @@ export async function PUT(request: NextRequest) {
 
       const newOffer = await prisma.offer.create({
         data: {
-          restaurantId: session.id,
+          restaurantId: restaurant.id,
           offerText: finalOfferText,
           isActive: isActive !== false,
           discountType: discountType || null,
@@ -215,7 +201,7 @@ export async function PUT(request: NextRequest) {
     if (photoUrl !== undefined) updateData.photoUrl = photoUrl || null;
 
     const updatedOffer = await prisma.offer.update({
-      where: { id: restaurant.offer.id },
+      where: { id: restaurantWithOffer.offer.id },
       data: updateData,
     });
 
