@@ -119,11 +119,11 @@ export default function CustomerLogin() {
                 <form onSubmit={handleRequestOtp}>
                   <div className="mb-6">
                     <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
-                      {/* Country Code */}
-                      <div className="flex items-center px-4 py-3 bg-gray-50 border-r border-gray-200">
-                        <span className="text-xl mr-2">🇧🇩</span>
-                        <span className="text-gray-700 font-medium">+৮৮০</span>
-                      </div>
+                                            {/* Country Code */}
+                                            <div className="flex items-center px-4 py-3 bg-gray-50 border-r border-gray-200">
+                                              <span className="text-xl mr-2">🇧🇩</span>
+                                              <span className="text-gray-700 font-medium">{t("login", "countryCode")}</span>
+                                            </div>
                       {/* Phone Input */}
                       <input
                         type="tel"

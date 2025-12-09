@@ -24,28 +24,32 @@ export const translations = {
     bn: "পেছনে",
   },
 
-    // Login Page
-    login: {
-      welcome: {
-        en: "Welcome!",
-        bn: "স্বাগতম!",
-      },
-      title: {
-        en: "Enter your phone number",
-        bn: "আপনার ফোন নম্বর দিন",
-      },
-      subtitle: {
-        en: "Enter your mobile number to get started.",
-        bn: "শুরু করতে আপনার মোবাইল নম্বর দিন।",
-      },
-      phoneLabel: {
-        en: "Phone Number",
-        bn: "ফোন নম্বর",
-      },
-      phonePlaceholder: {
-        en: "1XXXXXXXXX",
-        bn: "১XXXXXXXXX",
-      },
+        // Login Page
+        login: {
+          welcome: {
+            en: "Welcome!",
+            bn: "স্বাগতম!",
+          },
+          title: {
+            en: "Enter your phone number",
+            bn: "আপনার ফোন নম্বর দিন",
+          },
+          subtitle: {
+            en: "Enter your mobile number to get started.",
+            bn: "শুরু করতে আপনার মোবাইল নম্বর দিন।",
+          },
+          countryCode: {
+            en: "+880",
+            bn: "+৮৮০",
+          },
+          phoneLabel: {
+            en: "Phone Number",
+            bn: "ফোন নম্বর",
+          },
+          phonePlaceholder: {
+            en: "1XXXXXXXXX",
+            bn: "১XXXXXXXXX",
+          },
       sendOtp: {
         en: "Send OTP",
         bn: "OTP পাঠান",
