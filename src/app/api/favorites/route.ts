@@ -38,12 +38,16 @@ export async function GET() {
           id: f.restaurant.id,
           name: f.restaurant.name,
           area: f.restaurant.area,
+          cuisine: f.restaurant.cuisine,
           description: f.restaurant.description,
           offer: f.restaurant.offer
             ? {
                 id: f.restaurant.offer.id,
                 offerText: f.restaurant.offer.offerText,
                 isActive: f.restaurant.offer.isActive,
+                photoUrl: f.restaurant.offer.photoUrl,
+                discountType: f.restaurant.offer.discountType,
+                discountValue: f.restaurant.offer.discountValue,
               }
             : null,
         },
