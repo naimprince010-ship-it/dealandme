@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-  const customerProtectedPaths = ["/coupons", "/restaurants/", "/my-coupons"];
+  const customerProtectedPaths = ["/home", "/coupons", "/restaurants/", "/my-coupons"];
   const restaurantProtectedPaths = ["/restaurant/dashboard", "/restaurant/validate", "/restaurant/history"];
   const adminProtectedPaths = ["/admin/dashboard", "/admin/restaurants", "/admin/coupons", "/admin/stats"];
 
@@ -46,6 +46,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/home",
     "/coupons/:path*",
     "/restaurants/:path*",
     "/restaurant/:path*",

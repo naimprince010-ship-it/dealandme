@@ -17,7 +17,7 @@ export default function BottomNav() {
 
   const navItems: NavItem[] = [
     {
-      href: "/",
+      href: "/home",
       labelKey: "home",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,7 @@ export default function BottomNav() {
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
+    if (href === "/home") return pathname === "/home";
     return pathname === href || pathname.startsWith(href + "/");
   };
 

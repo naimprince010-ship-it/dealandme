@@ -69,7 +69,7 @@ export default function CustomerLogin() {
         throw new Error(data.error || "Failed to verify OTP");
       }
 
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

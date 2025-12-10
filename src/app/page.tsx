@@ -1,412 +1,423 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
-import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import InstallAppBanner from "@/components/InstallAppBanner";
 
-interface HomeCategory {
-  id: string;
-  key: string;
-  labelEn: string;
-  labelBn: string;
-  iconKey: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-interface FeaturedOffer {
-  id: string;
-  offerText: string;
-  discountType: string | null;
-  discountValue: number | null;
-  photoUrl: string | null;
-  restaurant: {
-    id: string;
-    name: string;
-    area: string;
-    cuisine: string | null;
-  };
-}
-
-interface PopularRestaurant {
-  id: string;
-  name: string;
-  area: string;
-  cuisine: string | null;
-  offer: {
-    id: string;
-    offerText: string;
-    discountType: string | null;
-    discountValue: number | null;
-    photoUrl: string | null;
-    isActive: boolean;
-  } | null;
-}
-
-const CATEGORY_ICONS: Record<string, string> = {
-  near_me: "📍",
-  buffet: "🍽️",
-  cafe: "☕",
-  diler: "🍛",
-  cooking: "👨‍🍳",
-  stoas: "🏪",
-  fast_food: "🍔",
-  chinese: "🥡",
-  indian: "🍛",
-  thai: "🍜",
-  dessert: "🍰",
-  pizza: "🍕",
-};
-
-export default function HomePage() {
+export default function LandingPage() {
   const router = useRouter();
-  const { language, t } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState("");
-  const [categories, setCategories] = useState<HomeCategory[]>([]);
-  const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>([]);
-  const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>([]);
-  const [nearbyRestaurants, setNearbyRestaurants] = useState<PopularRestaurant[]>([]);
-  const [locationEnabled, setLocationEnabled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const fetchHomeData = useCallback(async (lat?: number, lng?: number) => {
-    try {
-      let url = "/api/home";
-      if (lat && lng) {
-        url += `?lat=${lat}&lng=${lng}`;
-      }
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setCategories(data.categories || []);
-        setFeaturedOffers(data.featuredOffers || []);
-        setPopularRestaurants(data.popularRestaurants || []);
-        setNearbyRestaurants(data.nearbyRestaurants || []);
-      }
-    } catch (error) {
-      console.error("Error fetching home data:", error);
-    }
-  }, []);
+  const { language, setLanguage } = useLanguage();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    async function init() {
+    async function checkAuth() {
       try {
-        const authRes = await fetch("/api/auth/me");
-        const authData = await authRes.json();
-
-        if (!authData.authenticated || authData.user?.type !== "CUSTOMER") {
-          router.push("/login");
-          return;
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (data.authenticated) {
+          if (data.user?.type === "CUSTOMER") {
+            router.push("/home");
+          } else if (data.user?.type === "RESTAURANT") {
+            router.push("/restaurant/dashboard");
+          } else if (data.user?.type === "ADMIN") {
+            router.push("/admin/dashboard");
+          }
         }
-
-        const phone = authData.user?.phone || "";
-        setUserName(phone.slice(-4));
-
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setLocationEnabled(true);
-              fetchHomeData(position.coords.latitude, position.coords.longitude);
-            },
-            () => {
-              fetchHomeData();
-            }
-          );
-        } else {
-          fetchHomeData();
-        }
-      } catch (error) {
-        console.error("Error initializing:", error);
-        router.push("/login");
+      } catch {
+        // Not authenticated, show landing page
       } finally {
-        setLoading(false);
+        setIsCheckingAuth(false);
       }
     }
+    checkAuth();
+  }, [router]);
 
-    init();
-  }, [router, fetchHomeData]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/restaurants?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  const handleCategoryClick = (category: HomeCategory) => {
-    if (category.key === "near_me") {
-      if (!locationEnabled) {
-        alert(t("home", "locationPermission"));
-        return;
-      }
-      router.push("/restaurants?sort=nearby");
-    } else {
-      router.push(`/restaurants?category=${category.key}`);
-    }
-  };
-
-  const getDiscountBadge = (discountType: string | null, discountValue: number | null) => {
-    if (!discountValue) return null;
-    if (discountType === "PERCENTAGE") {
-      return language === "bn" ? `${discountValue}% ${t("home", "off")}` : `${discountValue}% ${t("home", "off")}`;
-    }
-    return `৳${discountValue} ${t("home", "off")}`;
-  };
-
-  if (loading) {
+  if (isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{
-        background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
+        background: "linear-gradient(180deg, #7DD3C0 0%, #A8E6CF 50%, #E8F5E9 100%)"
       }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t("loading", "en")}</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     );
   }
 
+  const content = {
+    hero: {
+      title: language === "bn" ? "Dhakar সেরা রেস্টুরেন্টে" : "At Dhaka's Best Restaurants",
+      subtitle: language === "bn" ? "৫০% পর্যন্ত ছাড়!" : "Up to 50% Off!",
+      description: language === "bn" 
+        ? "Bill দেওয়ার আগে app টা দেখান, instant discount পান। কোনো ঝামেলা নেই।" 
+        : "Show the app before paying, get instant discount. No hassle.",
+      installBtn: language === "bn" ? "App Install করুন" : "Install App",
+      customerBtn: language === "bn" ? "Customer Login" : "Customer Login",
+      restaurantBtn: language === "bn" ? "Restaurant Partner" : "Restaurant Partner",
+    },
+    howItWorks: {
+      title: language === "bn" ? "কিভাবে কাজ করে?" : "How It Works?",
+      steps: [
+        {
+          icon: "📱",
+          title: language === "bn" ? "App Install করুন" : "Install the App",
+          desc: language === "bn" ? "Play Store ছাড়াই, সরাসরি website থেকে install করুন" : "Install directly from website, no Play Store needed",
+        },
+        {
+          icon: "🔍",
+          title: language === "bn" ? "Restaurant খুঁজুন" : "Find a Restaurant",
+          desc: language === "bn" ? "আপনার এলাকায় discount offer আছে এমন restaurant দেখুন" : "Browse restaurants with discount offers in your area",
+        },
+        {
+          icon: "🎫",
+          title: language === "bn" ? "Coupon নিন" : "Get Your Coupon",
+          desc: language === "bn" ? "Restaurant এ গিয়ে bill দেওয়ার আগে coupon দেখান" : "Show coupon at restaurant before paying the bill",
+        },
+        {
+          icon: "💰",
+          title: language === "bn" ? "Discount পান!" : "Get Discount!",
+          desc: language === "bn" ? "Instant discount পান, কোনো hidden charge নেই" : "Get instant discount, no hidden charges",
+        },
+      ],
+    },
+    savings: {
+      title: language === "bn" ? "কত টাকা বাঁচাবেন?" : "How Much Will You Save?",
+      examples: [
+        { bill: "৳1,000", discount: "20%", save: "৳200" },
+        { bill: "৳2,000", discount: "30%", save: "৳600" },
+        { bill: "৳5,000", discount: "50%", save: "৳2,500" },
+      ],
+    },
+    forRestaurants: {
+      title: language === "bn" ? "Restaurant Owner?" : "Restaurant Owner?",
+      subtitle: language === "bn" ? "আপনার empty table গুলো ভরে ফেলুন" : "Fill Your Empty Tables",
+      benefits: [
+        {
+          icon: "📈",
+          title: language === "bn" ? "নতুন Customer পান" : "Get New Customers",
+          desc: language === "bn" ? "Off-peak time এ নতুন customer আনুন" : "Bring new customers during off-peak hours",
+        },
+        {
+          icon: "💳",
+          title: language === "bn" ? "No Upfront Fee" : "No Upfront Fee",
+          desc: language === "bn" ? "শুধু customer আসলেই pay করুন" : "Pay only when customers come",
+        },
+        {
+          icon: "📊",
+          title: language === "bn" ? "Full Control" : "Full Control",
+          desc: language === "bn" ? "Offer, schedule, discount সব নিজে control করুন" : "Control offers, schedule, and discounts yourself",
+        },
+        {
+          icon: "📱",
+          title: language === "bn" ? "Easy Dashboard" : "Easy Dashboard",
+          desc: language === "bn" ? "Redemption আর billing সব এক জায়গায়" : "Redemptions and billing all in one place",
+        },
+      ],
+      cta: language === "bn" ? "Partner হিসেবে যোগ দিন" : "Join as Partner",
+    },
+    faq: {
+      title: language === "bn" ? "সাধারণ প্রশ্ন" : "FAQ",
+      items: [
+        {
+          q: language === "bn" ? "এটা কি scam? Free discount কেন?" : "Is this a scam? Why free discounts?",
+          a: language === "bn" 
+            ? "না, এটা scam না। Restaurant রা off-peak time এ customer আনতে discount দেয়। আমরা শুধু connect করি।" 
+            : "No, it's not a scam. Restaurants offer discounts to bring customers during off-peak hours. We just connect them.",
+        },
+        {
+          q: language === "bn" ? "কোনো hidden charge আছে?" : "Any hidden charges?",
+          a: language === "bn" 
+            ? "Customer দের জন্য সম্পূর্ণ free। কোনো charge নেই।" 
+            : "Completely free for customers. No charges at all.",
+        },
+        {
+          q: language === "bn" ? "কিভাবে discount পাব?" : "How do I get the discount?",
+          a: language === "bn" 
+            ? "Restaurant এ গিয়ে bill দেওয়ার আগে app থেকে coupon generate করুন এবং waiter কে দেখান।" 
+            : "Go to the restaurant, generate coupon from app before paying, and show it to the waiter.",
+        },
+        {
+          q: language === "bn" ? "Restaurant owner হিসেবে কিভাবে join করব?" : "How do I join as a restaurant owner?",
+          a: language === "bn" 
+            ? "Restaurant Partner button এ click করুন এবং login করুন। Admin আপনার account setup করে দেবে।" 
+            : "Click Restaurant Partner button and login. Admin will set up your account.",
+        },
+      ],
+    },
+    areas: {
+      title: language === "bn" ? "কোথায় পাবেন?" : "Where to Find Us?",
+      list: ["Gulshan", "Banani", "Dhanmondi", "Uttara", "Mirpur", "Mohammadpur", "Bashundhara", "Motijheel"],
+    },
+    footer: {
+      tagline: language === "bn" ? "Dealandme - Restaurant Discounts Made Easy" : "Dealandme - Restaurant Discounts Made Easy",
+      copyright: "© 2025 Dealandme. All rights reserved.",
+    },
+  };
+
   return (
-    <div className="min-h-screen pb-20 relative overflow-hidden" style={{
-      background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
+    <div className="min-h-screen relative overflow-hidden" style={{
+      background: "linear-gradient(180deg, #7DD3C0 0%, #A8E6CF 50%, #E8F5E9 100%)"
     }}>
       <LoginBackgroundPattern />
-      
-      <main className="relative z-10 max-w-lg mx-auto px-4 pt-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
+
+      {/* Language Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={() => setLanguage(language === "bn" ? "en" : "bn")}
+          className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-700 shadow-lg hover:bg-white transition-all"
+        >
+          {language === "bn" ? "EN" : "বাং"}
+        </button>
+      </div>
+
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+          <div className="max-w-lg mx-auto text-center">
+            {/* Logo */}
+            <div className="w-24 h-24 bg-white/90 backdrop-blur-sm rounded-3xl mx-auto flex items-center justify-center shadow-xl mb-6">
+              <span className="text-5xl">🍽️</span>
             </div>
-            <h1 className="text-xl font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-              {t("home", "greeting")}, {userName ? `...${userName}` : ""}!
+
+            {/* App Name */}
+            <h1 className="text-4xl font-bold text-gray-800 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              Dealandme
             </h1>
-          </div>
-          <button className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
-        </div>
 
-        {/* Install App Banner */}
-        <InstallAppBanner />
-
-        {/* Search Bar */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("home", "searchPlaceholder")}
-              className="w-full px-4 py-3 pl-10 bg-white/90 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
-              style={{ fontFamily: "var(--font-bangla), sans-serif" }}
-            />
-            <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push("/restaurants")}
-            className="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center shadow-sm border border-gray-200"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-          </button>
-        </form>
-
-        {/* Categories */}
-        {categories.length > 0 && (
-          <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
-            <div className="flex gap-4" style={{ minWidth: "max-content" }}>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category)}
-                  className="flex flex-col items-center gap-2 min-w-[70px]"
-                >
-                  <div className="w-14 h-14 bg-white/90 rounded-2xl flex items-center justify-center shadow-sm border border-gray-100">
-                    <span className="text-2xl">{CATEGORY_ICONS[category.iconKey] || "📁"}</span>
-                  </div>
-                  <span className="text-xs text-gray-700 font-medium text-center" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                    {language === "bn" ? category.labelBn : category.labelEn}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Featured Deals */}
-        <section className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-              {t("home", "featuredDeals")}
-            </h2>
-            <Link href="/restaurants" className="text-sm text-emerald-600 font-medium">
-              {t("home", "seeAll")} &gt;
-            </Link>
-          </div>
-
-          {featuredOffers.length === 0 ? (
-            <div className="bg-white/80 rounded-2xl p-8 text-center">
-              <p className="text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                {t("home", "noFeaturedDeals")}
+            {/* Tagline */}
+            <div className="mb-4">
+              <p className="text-2xl font-bold text-emerald-700" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                {content.hero.title}
+              </p>
+              <p className="text-3xl font-extrabold text-emerald-600" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                {content.hero.subtitle}
               </p>
             </div>
-          ) : (
-            <div className="overflow-x-auto pb-2 -mx-4 px-4">
-              <div className="flex gap-4" style={{ minWidth: "max-content" }}>
-                {featuredOffers.map((offer) => (
-                  <div
-                    key={offer.id}
-                    className="w-72 bg-white/90 rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-shrink-0"
-                  >
-                    <div className="relative h-40">
-                      {offer.photoUrl ? (
-                        <img
-                          src={offer.photoUrl}
-                          alt={offer.restaurant.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                          <span className="text-5xl">🍽️</span>
-                        </div>
-                      )}
-                      {offer.discountValue && (
-                        <div className="absolute top-3 right-3 bg-emerald-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                          {getDiscountBadge(offer.discountType, offer.discountValue)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-800 mb-1" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                        {offer.restaurant.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-3">
-                        {offer.restaurant.area}{offer.restaurant.cuisine ? `, ${offer.restaurant.cuisine}` : ""}
-                      </p>
-                      <Link
-                        href={`/restaurants/${offer.restaurant.id}`}
-                        className="block w-full py-2.5 text-center rounded-xl font-semibold text-white transition-all"
-                        style={{
-                          background: "linear-gradient(135deg, #5BA88B 0%, #4A9A7C 100%)",
-                          fontFamily: "var(--font-bangla), sans-serif"
-                        }}
-                      >
-                        {t("home", "bookNow")}
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+
+            {/* Description */}
+            <p className="text-gray-600 mb-8 text-lg" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {content.hero.description}
+            </p>
+
+            {/* Install Banner */}
+            <div className="mb-6">
+              <InstallAppBanner />
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="space-y-3">
+              <Link
+                href="/install"
+                className="block w-full py-4 rounded-2xl font-bold text-white text-lg shadow-lg transition-all hover:shadow-xl"
+                style={{
+                  background: "linear-gradient(135deg, #5BA88B 0%, #4A9A7C 100%)",
+                  fontFamily: "var(--font-bangla), sans-serif"
+                }}
+              >
+                {content.hero.installBtn}
+              </Link>
+
+              <div className="flex gap-3">
+                <Link
+                  href="/login"
+                  className="flex-1 py-3 rounded-xl font-semibold text-emerald-700 bg-white/80 backdrop-blur-sm shadow-md hover:bg-white transition-all"
+                  style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+                >
+                  {content.hero.customerBtn}
+                </Link>
+                <Link
+                  href="/restaurant/login"
+                  className="flex-1 py-3 rounded-xl font-semibold text-emerald-700 bg-white/80 backdrop-blur-sm shadow-md hover:bg-white transition-all"
+                  style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+                >
+                  {content.hero.restaurantBtn}
+                </Link>
               </div>
             </div>
-          )}
+
+            {/* Scroll indicator */}
+            <div className="mt-12 animate-bounce">
+              <svg className="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          </div>
         </section>
 
-        {/* Nearby Restaurants (if location enabled) */}
-        {locationEnabled && nearbyRestaurants.length > 0 && (
-          <section className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                {t("home", "nearbyRestaurants")}
-              </h2>
-              <Link href="/restaurants?sort=nearby" className="text-sm text-emerald-600 font-medium">
-                {t("home", "seeAll")} &gt;
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {nearbyRestaurants.slice(0, 5).map((restaurant) => (
-                <Link
-                  key={restaurant.id}
-                  href={`/restaurants/${restaurant.id}`}
-                  className="flex items-center gap-4 bg-white/90 rounded-xl p-3 shadow-sm border border-gray-100"
-                >
-                  <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {restaurant.offer?.photoUrl ? (
-                      <img
-                        src={restaurant.offer.photoUrl}
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl">🍽️</span>
-                    )}
+        {/* How It Works */}
+        <section className="py-16 px-4 bg-white/50 backdrop-blur-sm">
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-10" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {content.howItWorks.title}
+            </h2>
+
+            <div className="space-y-6">
+              {content.howItWorks.steps.map((step, index) => (
+                <div key={index} className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">{step.icon}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 truncate" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                      {restaurant.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 truncate">{restaurant.area}</p>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-6 h-6 bg-emerald-500 text-white rounded-full text-sm font-bold flex items-center justify-center">
+                        {index + 1}
+                      </span>
+                      <h3 className="font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                        {step.title}
+                      </h3>
+                    </div>
+                    <p className="text-gray-600 text-sm" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                      {step.desc}
+                    </p>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Popular Restaurants */}
-        <section className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-              {t("home", "popularRestaurants")}
-            </h2>
-            <Link href="/restaurants" className="text-sm text-emerald-600 font-medium">
-              {t("home", "seeAll")} &gt;
-            </Link>
           </div>
+        </section>
 
-          {popularRestaurants.length === 0 ? (
-            <div className="bg-white/80 rounded-2xl p-8 text-center">
-              <p className="text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                {t("home", "noPopularRestaurants")}
+        {/* Savings Calculator */}
+        <section className="py-16 px-4">
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-8" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {content.savings.title}
+            </h2>
+
+            <div className="grid grid-cols-3 gap-3">
+              {content.savings.examples.map((example, index) => (
+                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 text-center shadow-md">
+                  <p className="text-gray-500 text-sm mb-1">Bill</p>
+                  <p className="font-bold text-gray-800">{example.bill}</p>
+                  <div className="my-2 py-1 bg-emerald-100 rounded-lg">
+                    <p className="text-emerald-600 font-bold">{example.discount}</p>
+                  </div>
+                  <p className="text-gray-500 text-sm mb-1">{language === "bn" ? "বাঁচবে" : "Save"}</p>
+                  <p className="font-bold text-emerald-600 text-lg">{example.save}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* For Restaurants */}
+        <section className="py-16 px-4 bg-gradient-to-b from-emerald-600 to-emerald-700">
+          <div className="max-w-lg mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                {content.forRestaurants.title}
+              </h2>
+              <p className="text-emerald-100 text-lg" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                {content.forRestaurants.subtitle}
               </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {popularRestaurants.map((restaurant) => (
-                <Link
-                  key={restaurant.id}
-                  href={`/restaurants/${restaurant.id}`}
-                  className="flex items-center gap-4 bg-white/90 rounded-xl p-3 shadow-sm border border-gray-100"
-                >
-                  <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {restaurant.offer?.photoUrl ? (
-                      <img
-                        src={restaurant.offer.photoUrl}
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl">🍽️</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 truncate" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                      {restaurant.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 truncate">{restaurant.area}</p>
-                  </div>
-                </Link>
+
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              {content.forRestaurants.benefits.map((benefit, index) => (
+                <div key={index} className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+                  <span className="text-3xl mb-2 block">{benefit.icon}</span>
+                  <h3 className="font-bold text-white mb-1" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                    {benefit.title}
+                  </h3>
+                  <p className="text-emerald-100 text-sm" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                    {benefit.desc}
+                  </p>
+                </div>
               ))}
             </div>
-          )}
-        </section>
-      </main>
 
-      <BottomNav />
+            <Link
+              href="/restaurant/login"
+              className="block w-full py-4 rounded-2xl font-bold text-emerald-700 bg-white text-lg shadow-lg text-center hover:bg-emerald-50 transition-all"
+              style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+            >
+              {content.forRestaurants.cta}
+            </Link>
+          </div>
+        </section>
+
+        {/* Areas */}
+        <section className="py-16 px-4 bg-white/50 backdrop-blur-sm">
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-8" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {content.areas.title}
+            </h2>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {content.areas.list.map((area, index) => (
+                <span
+                  key={index}
+                  className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium"
+                >
+                  {area}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 px-4">
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-8" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {content.faq.title}
+            </h2>
+
+            <div className="space-y-4">
+              {content.faq.items.map((item, index) => (
+                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-md">
+                  <h3 className="font-bold text-gray-800 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                    {item.q}
+                  </h3>
+                  <p className="text-gray-600 text-sm" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                    {item.a}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-16 px-4 bg-gradient-to-b from-emerald-500 to-emerald-600">
+          <div className="max-w-lg mx-auto text-center">
+            <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {language === "bn" ? "আজই শুরু করুন!" : "Start Today!"}
+            </h2>
+            <p className="text-emerald-100 mb-8" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {language === "bn" ? "App install করুন এবং discount পেতে শুরু করুন" : "Install the app and start getting discounts"}
+            </p>
+
+            <div className="flex gap-3 justify-center">
+              <Link
+                href="/install"
+                className="px-8 py-4 rounded-2xl font-bold text-emerald-700 bg-white text-lg shadow-lg hover:bg-emerald-50 transition-all"
+                style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+              >
+                {content.hero.installBtn}
+              </Link>
+            </div>
+
+            {/* QR Code */}
+            <div className="mt-8">
+              <p className="text-emerald-100 text-sm mb-3" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                {language === "bn" ? "অথবা QR code scan করুন" : "Or scan QR code"}
+              </p>
+              <div className="w-32 h-32 bg-white rounded-2xl mx-auto p-2 shadow-lg">
+                <img src="/qr/install-app.png" alt="Install QR Code" className="w-full h-full" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-8 px-4 bg-gray-800">
+          <div className="max-w-lg mx-auto text-center">
+            <p className="text-gray-400 text-sm mb-2">{content.footer.tagline}</p>
+            <p className="text-gray-500 text-xs">{content.footer.copyright}</p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
