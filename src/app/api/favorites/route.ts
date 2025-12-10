@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getCustomer } from "@/lib/auth";
 
 // GET - Get user's favorite restaurants
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "CUSTOMER") {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const favorites = await prisma.favorite.findMany({
-      where: { userId: session.id },
+      where: { userId: customer.id },
       include: {
         restaurant: {
           include: {
@@ -66,16 +58,8 @@ export async function GET() {
 // POST - Add restaurant to favorites
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "CUSTOMER") {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -104,7 +88,7 @@ export async function POST(request: Request) {
     const existing = await prisma.favorite.findUnique({
       where: {
         userId_restaurantId: {
-          userId: session.id,
+          userId: customer.id,
           restaurantId,
         },
       },
@@ -120,7 +104,7 @@ export async function POST(request: Request) {
     // Create favorite
     const favorite = await prisma.favorite.create({
       data: {
-        userId: session.id,
+        userId: customer.id,
         restaurantId,
       },
     });
@@ -138,16 +122,8 @@ export async function POST(request: Request) {
 // DELETE - Remove restaurant from favorites
 export async function DELETE(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "CUSTOMER") {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -163,7 +139,7 @@ export async function DELETE(request: Request) {
     // Delete favorite
     await prisma.favorite.deleteMany({
       where: {
-        userId: session.id,
+        userId: customer.id,
         restaurantId,
       },
     });

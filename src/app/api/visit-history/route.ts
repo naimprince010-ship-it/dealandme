@@ -1,28 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getCustomer } from "@/lib/auth";
 
 // GET - Get user's recently visited restaurants
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
-
-    if (!sessionToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get recent visits (last 20, unique restaurants)
     const visits = await prisma.visitHistory.findMany({
-      where: { userId: session.userId },
+      where: { userId: customer.id },
       orderBy: { visitedAt: "desc" },
       take: 50,
       include: {
@@ -71,18 +61,8 @@ export async function GET() {
 // POST - Record a restaurant visit
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
-
-    if (!sessionToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -110,7 +90,7 @@ export async function POST(request: NextRequest) {
     // Record the visit
     await prisma.visitHistory.create({
       data: {
-        userId: session.userId,
+        userId: customer.id,
         restaurantId,
       },
     });

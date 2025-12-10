@@ -1,26 +1,16 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getCustomer } from "@/lib/auth";
 
 // GET - Get personalized restaurant recommendations
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
-
-    if (!sessionToken) {
+    const customer = await getCustomer();
+    if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.userId;
+    const userId = customer.id;
 
     // Get user's favorite restaurants
     const favorites = await prisma.favorite.findMany({
