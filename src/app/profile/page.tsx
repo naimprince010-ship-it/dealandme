@@ -87,7 +87,14 @@ export default function ProfilePage() {
   }, [router]);
 
   const toggleNotifications = async () => {
-    if (!notificationsSupported) return;
+    if (!notificationsSupported) {
+      alert(
+        language === "bn"
+          ? "আপনার ব্রাউজার বা ডিভাইসে নোটিফিকেশন সাপোর্ট নেই। অনুগ্রহ করে Chrome বা Safari ব্যবহার করুন।"
+          : "Notifications are not supported on this browser or device. Please use Chrome or Safari."
+      );
+      return;
+    }
 
     setNotificationsLoading(true);
     try {
@@ -347,29 +354,31 @@ export default function ProfilePage() {
           </Link>
 
           {/* Notification Settings */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <button 
+            onClick={toggleNotifications}
+            disabled={notificationsLoading}
+            className="w-full flex items-center justify-between p-4 border-b border-gray-100 active:bg-gray-50"
+          >
             <div className="flex items-center gap-3">
               <span className="text-xl">🔔</span>
-              <span className="text-gray-800">{language === "bn" ? "নোটিফিকেশন সেটিংস" : "Notification Settings"}</span>
+              <span className={`${notificationsSupported ? "text-gray-800" : "text-gray-400"}`}>
+                {language === "bn" ? "নোটিফিকেশন সেটিংস" : "Notification Settings"}
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              {notificationsSupported && (
-                <button
-                  onClick={toggleNotifications}
-                  disabled={notificationsLoading}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notificationsEnabled ? "bg-emerald-500" : "bg-gray-300"
-                  } ${notificationsLoading ? "opacity-50" : ""}`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notificationsEnabled ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              )}
+              <div
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  notificationsEnabled ? "bg-emerald-500" : "bg-gray-300"
+                } ${notificationsLoading ? "opacity-50" : ""} ${!notificationsSupported ? "opacity-50" : ""}`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    notificationsEnabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </div>
             </div>
-          </div>
+          </button>
 
           {/* Refer a Friend */}
           <button 
