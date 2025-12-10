@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 // GET - Get user's push subscription status
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
+    const session = await getSession();
 
-    if (!sessionToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -40,18 +31,9 @@ export async function GET() {
 // POST - Subscribe to push notifications
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
+    const session = await getSession();
 
-    if (!sessionToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -104,18 +86,9 @@ export async function POST(request: NextRequest) {
 // DELETE - Unsubscribe from push notifications
 export async function DELETE(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get("session_token")?.value;
+    const session = await getSession();
 
-    if (!sessionToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-    });
-
-    if (!session || session.userType !== "CUSTOMER" || session.expiresAt < new Date()) {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
