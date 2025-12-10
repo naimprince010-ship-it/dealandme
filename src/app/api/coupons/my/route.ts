@@ -19,6 +19,7 @@ export async function GET() {
       include: {
         restaurant: {
           select: {
+            id: true,
             name: true,
             area: true,
           },
@@ -26,6 +27,9 @@ export async function GET() {
         offer: {
           select: {
             offerText: true,
+            photoUrl: true,
+            discountType: true,
+            discountValue: true,
           },
         },
       },
