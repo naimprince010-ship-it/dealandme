@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import InstallAppBanner from "@/components/InstallAppBanner";
+import { HomePageSkeleton } from "@/components/Skeleton";
 
 interface HomeCategory {
   id: string;
@@ -160,13 +161,18 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
+      <div className="min-h-screen pb-20 relative overflow-hidden" style={{
         background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
       }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t("loading", "en")}</p>
-        </div>
+        <LoginBackgroundPattern />
+        <main className="relative z-10 max-w-lg mx-auto px-4 pt-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="skeleton w-12 h-12 rounded-full" />
+            <div className="skeleton h-6 w-40" />
+          </div>
+          <HomePageSkeleton />
+        </main>
+        <BottomNav />
       </div>
     );
   }
