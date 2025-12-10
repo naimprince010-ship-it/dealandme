@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
+import InstallAppBanner from "@/components/InstallAppBanner";
 
 interface HomeCategory {
   id: string;
@@ -195,6 +196,9 @@ export default function HomePage() {
             </svg>
           </button>
         </div>
+
+        {/* Install App Banner */}
+        <InstallAppBanner />
 
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="flex gap-2 mb-6">
