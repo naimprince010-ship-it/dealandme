@@ -46,16 +46,11 @@ interface GroupedRestaurants {
   [area: string]: Restaurant[];
 }
 
-// Available areas for filtering
-const AREAS = [
-  { id: "all", en: "All Areas", bn: "সব এলাকা" },
-  { id: "Dhanmondi", en: "Dhanmondi", bn: "ধানমন্ডি" },
-  { id: "Banani", en: "Banani", bn: "বনানী" },
-  { id: "Uttara", en: "Uttara", bn: "উত্তরা" },
-  { id: "Gulshan", en: "Gulshan", bn: "গুলশান" },
-  { id: "Mirpur", en: "Mirpur", bn: "মিরপুর" },
-  { id: "Mohammadpur", en: "Mohammadpur", bn: "মোহাম্মদপুর" },
-];
+interface Area {
+  id: string;
+  nameEn: string;
+  nameBn: string;
+}
 
 export default function RestaurantsPage() {
   const router = useRouter();
@@ -68,6 +63,7 @@ export default function RestaurantsPage() {
   const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [areas, setAreas] = useState<Area[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -81,13 +77,14 @@ export default function RestaurantsPage() {
           return;
         }
 
-        // Fetch restaurants, favorites, recently visited, and recommendations in parallel
-        const [restaurantsRes, favoritesRes, visitHistoryRes, recommendationsRes] = await Promise.all([
-          fetch("/api/restaurants"),
-          fetch("/api/favorites"),
-          fetch("/api/visit-history"),
-          fetch("/api/recommendations"),
-        ]);
+                // Fetch restaurants, favorites, recently visited, recommendations, and areas in parallel
+                const [restaurantsRes, favoritesRes, visitHistoryRes, recommendationsRes, areasRes] = await Promise.all([
+                  fetch("/api/restaurants"),
+                  fetch("/api/favorites"),
+                  fetch("/api/visit-history"),
+                  fetch("/api/recommendations"),
+                  fetch("/api/areas"),
+                ]);
 
         const restaurantsData = await restaurantsRes.json();
         if (!restaurantsRes.ok) {
@@ -110,16 +107,22 @@ export default function RestaurantsPage() {
           setRecentlyVisited(visitData.recentlyVisited || []);
         }
 
-        // Set recommendations
-        if (recommendationsRes.ok) {
-          const recData = await recommendationsRes.json();
-          setRecommendations(recData.recommendations || []);
-          // Show recommendations section if user has some history
-          if (recData.recommendations?.length > 0 && recData.preferences?.totalVisits > 0) {
-            setShowRecommendations(true);
-          }
-        }
-      } catch (err) {
+              // Set recommendations
+              if (recommendationsRes.ok) {
+                const recData = await recommendationsRes.json();
+                setRecommendations(recData.recommendations || []);
+                // Show recommendations section if user has some history
+                if (recData.recommendations?.length > 0 && recData.preferences?.totalVisits > 0) {
+                  setShowRecommendations(true);
+                }
+              }
+
+              // Set areas
+              if (areasRes.ok) {
+                const areasData = await areasRes.json();
+                setAreas(areasData.areas || []);
+              }
+            } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setLoading(false);
@@ -205,9 +208,9 @@ export default function RestaurantsPage() {
     );
   }
 
-  const areas = Object.keys(groupedRestaurants);
+    const restaurantAreas = Object.keys(groupedRestaurants);
 
-  if (areas.length === 0) {
+    if (restaurantAreas.length === 0) {
     return (
       <div className="min-h-screen pb-24 relative overflow-hidden" style={{
         background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
@@ -270,25 +273,36 @@ export default function RestaurantsPage() {
           </h1>
         </div>
 
-        {/* Area Selection Filter */}
-        <div className="mb-6 overflow-x-auto -mx-4 px-4">
-          <div className="flex gap-2 pb-2">
-            {AREAS.map((area) => (
-              <button
-                key={area.id}
-                onClick={() => setSelectedArea(area.id)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                  selectedArea === area.id
-                    ? "bg-emerald-500 text-white shadow-sm"
-                    : "bg-white/80 text-gray-600 hover:bg-white"
-                }`}
-                style={{ fontFamily: "var(--font-bangla), sans-serif" }}
-              >
-                {language === "bn" ? area.bn : area.en}
-              </button>
-            ))}
-          </div>
-        </div>
+                {/* Area Selection Filter */}
+                <div className="mb-6 overflow-x-auto -mx-4 px-4">
+                  <div className="flex gap-2 pb-2">
+                    <button
+                      onClick={() => setSelectedArea("all")}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                        selectedArea === "all"
+                          ? "bg-emerald-500 text-white shadow-sm"
+                          : "bg-white/80 text-gray-600 hover:bg-white"
+                      }`}
+                      style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+                    >
+                      {language === "bn" ? "সব এলাকা" : "All Areas"}
+                    </button>
+                    {areas.map((area) => (
+                      <button
+                        key={area.id}
+                        onClick={() => setSelectedArea(area.nameEn)}
+                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                          selectedArea === area.nameEn
+                            ? "bg-emerald-500 text-white shadow-sm"
+                            : "bg-white/80 text-gray-600 hover:bg-white"
+                        }`}
+                        style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+                      >
+                        {language === "bn" ? area.nameBn : area.nameEn}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
         {/* Recommendations Section */}
         {showRecommendations && recommendations.length > 0 && (
