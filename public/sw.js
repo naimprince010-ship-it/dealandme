@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealbox-v2';
+const CACHE_NAME = 'dealbox-v3';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -86,6 +86,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Skip non-HTTP(S) requests (e.g., chrome-extension://)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
+  // Skip cross-origin requests
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
   // Skip non-GET requests
   if (request.method !== 'GET') {

@@ -1,27 +1,20 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 // GET - Get user stats for badges
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
+    const session = await getSession();
 
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "CUSTOMER") {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get total coupons used
     const couponsUsed = await prisma.coupon.count({
       where: {
-        userId: session.id,
+        userId: session.userId,
         status: "USED",
       },
     });
@@ -30,7 +23,7 @@ export async function GET() {
     const restaurantsTried = await prisma.coupon.groupBy({
       by: ["restaurantId"],
       where: {
-        userId: session.id,
+        userId: session.userId,
         status: "USED",
       },
     });
@@ -38,20 +31,20 @@ export async function GET() {
     // Get total coupons generated
     const couponsGenerated = await prisma.coupon.count({
       where: {
-        userId: session.id,
+        userId: session.userId,
       },
     });
 
     // Get referral count
     const referralsCount = await prisma.referral.count({
       where: {
-        referrerId: session.id,
+        referrerId: session.userId,
       },
     });
 
     // Get user's referral code
     const user = await prisma.user.findUnique({
-      where: { id: session.id },
+      where: { id: session.userId },
       select: { referralCode: true },
     });
 
