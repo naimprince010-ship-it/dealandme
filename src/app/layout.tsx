@@ -12,22 +12,22 @@ const hindSiliguri = Hind_Siliguri({
 });
 
 export const metadata: Metadata = {
-  title: "Dealbox - Local Restaurant Discounts",
-  description: "Get verified discounts at local restaurants",
+  title: "Dealandme - Restaurant Discounts",
+  description: "Get verified discounts at local restaurants in Bangladesh",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Dealbox",
+    title: "Dealandme",
   },
   icons: {
-    icon: "/icons/icon-192x192.svg",
-    apple: "/icons/icon-192x192.svg",
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4F46E5",
+  themeColor: "#7DD3C0",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
