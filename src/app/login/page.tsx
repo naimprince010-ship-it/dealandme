@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
 import LoginLogoMark from "@/components/LoginLogoMark";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
+import InstallAppBanner from "@/components/InstallAppBanner";
 
 export default function CustomerLogin() {
   const router = useRouter();
@@ -94,6 +95,11 @@ export default function CustomerLogin() {
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <LoginLogoMark />
+          </div>
+
+          {/* Install App Banner */}
+          <div className="mb-6">
+            <InstallAppBanner />
           </div>
 
           {/* Card */}
