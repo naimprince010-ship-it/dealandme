@@ -6,6 +6,7 @@ import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { useLanguage } from "@/lib/LanguageContext";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
+import { RestaurantListSkeleton, Skeleton } from "@/components/Skeleton";
 
 interface Restaurant {
   id: string;
@@ -176,15 +177,23 @@ export default function RestaurantsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
+      <div className="min-h-screen pb-24 relative overflow-hidden" style={{
         background: "linear-gradient(135deg, #f9f5ec 0%, #e8f4f0 50%, #d4ebe5 100%)"
       }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-            {language === "bn" ? "লোড হচ্ছে..." : "Loading..."}
-          </p>
-        </div>
+        <LoginBackgroundPattern />
+        <main className="relative z-10 max-w-lg mx-auto px-4 pt-6">
+          <div className="flex items-center gap-4 mb-6">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="h-6 w-40" />
+          </div>
+          <div className="flex gap-2 mb-6 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-10 w-24 rounded-xl flex-shrink-0" />
+            ))}
+          </div>
+          <RestaurantListSkeleton />
+        </main>
+        <BottomNav />
       </div>
     );
   }
