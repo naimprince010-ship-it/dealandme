@@ -293,6 +293,21 @@ model PushSubscription {
   @@map("push_subscriptions")
 }
 
+// Areas for restaurant location filtering
+model Area {
+  id        String   @id @default(uuid())
+  nameEn    String   @map("name_en")
+  nameBn    String   @map("name_bn")
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([nameEn])
+  @@index([isActive, sortOrder])
+  @@map("areas")
+}
+
 // Home screen categories (Near Me, Buffet, Cafe, etc.)
 model HomeCategory {
   id        String   @id @default(uuid())
