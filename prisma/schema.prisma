@@ -37,6 +37,7 @@ model User {
   phone        String   @unique
   referralCode String?  @unique @map("referral_code")
   referredBy   String?  @map("referred_by")
+  photoUrl     String?  @map("photo_url")
   createdAt    DateTime @default(now()) @map("created_at")
 
   coupons           Coupon[]
