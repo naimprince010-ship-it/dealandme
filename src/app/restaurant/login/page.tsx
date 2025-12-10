@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
+import InstallAppBanner from "@/components/InstallAppBanner";
 
 export default function RestaurantLogin() {
   const router = useRouter();
@@ -53,6 +54,11 @@ export default function RestaurantLogin() {
 
       <div className="flex-1 flex items-center justify-center px-4 pb-8">
         <div className="w-full max-w-sm">
+          {/* Install App Banner */}
+          <div className="mb-6">
+            <InstallAppBanner />
+          </div>
+
           {/* Logo & Header */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-white/80 backdrop-blur-sm rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-4">
