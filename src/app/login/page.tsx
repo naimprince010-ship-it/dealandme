@@ -102,8 +102,8 @@ export default function CustomerLogin() {
             <InstallAppBanner />
           </div>
 
-          {/* Card */}
-          <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 p-8">
+          {/* Card - min-h to prevent CLS between phone/otp steps */}
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/60 p-8 min-h-[380px]">
             {step === "phone" ? (
               <>
                 {/* Welcome Text */}
