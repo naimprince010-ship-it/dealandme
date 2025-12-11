@@ -274,8 +274,8 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-20" style={{ background: "linear-gradient(180deg, #7DD3C0 0%, #A8E6CF 30%, #F5F5F5 60%)" }}>
-      {/* Profile Header with Gradient */}
-      <div className="pt-8 pb-6 px-4">
+      {/* Profile Header with Gradient - min-h to prevent CLS */}
+      <div className="pt-8 pb-6 px-4 min-h-[420px]">
         {/* Profile Photo */}
         <div className="flex flex-col items-center">
           <div className="relative">
