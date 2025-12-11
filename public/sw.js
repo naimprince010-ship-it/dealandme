@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealandme-v4';
+const CACHE_NAME = 'dealandme-v5';
 const STATIC_ASSETS = [
   '/',
   '/login',
@@ -115,6 +115,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Next.js RSC (React Server Components) requests
+  if (url.searchParams.has('_rsc')) {
+    return;
+  }
+
   // For navigation requests, try network first
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -148,26 +153,35 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         if (cachedResponse) {
-          // Return cached version and update cache in background
-          fetch(request).then((response) => {
-            if (response.ok) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(request, response);
-              });
-            }
-          });
+          // Return cached version and update cache in background (fire and forget)
+          fetch(request)
+            .then((response) => {
+              if (response && response.ok) {
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(request, response);
+                }).catch(() => {});
+              }
+            })
+            .catch(() => {
+              // Silently ignore background fetch errors
+            });
           return cachedResponse;
         }
         // Not in cache, fetch from network
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        });
+        return fetch(request)
+          .then((response) => {
+            if (response && response.ok) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              }).catch(() => {});
+            }
+            return response;
+          })
+          .catch(() => {
+            // Return undefined if fetch fails and not in cache
+            return undefined;
+          });
       })
     );
     return;
@@ -177,14 +191,18 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response.ok) {
+        if (response && response.ok) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone);
-          });
+          }).catch(() => {});
         }
         return response;
       })
-      .catch(() => caches.match(request))
+      .catch(() => {
+        return caches.match(request).then((cachedResponse) => {
+          return cachedResponse || new Response('Offline', { status: 503 });
+        });
+      })
   );
 });
