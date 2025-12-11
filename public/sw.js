@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealandme-v5';
+const CACHE_NAME = 'dealandme-v6';
 const STATIC_ASSETS = [
   '/',
   '/login',
@@ -130,13 +130,15 @@ self.addEventListener('fetch', (event) => {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseClone);
-            });
+            }).catch(() => {});
           }
           return response;
         })
         .catch(() => {
           // Fallback to cache if network fails
-          return caches.match(request);
+          return caches.match(request).then((cachedResponse) => {
+            return cachedResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
+          });
         })
     );
     return;
@@ -179,8 +181,8 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch(() => {
-            // Return undefined if fetch fails and not in cache
-            return undefined;
+            // Return proper offline response if fetch fails and not in cache
+            return new Response('Offline', { status: 503 });
           });
       })
     );
