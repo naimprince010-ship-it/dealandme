@@ -265,8 +265,10 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Fixed min-height to prevent CLS when switching between empty/loaded states */}
+          <div style={{ minHeight: "280px" }}>
           {featuredOffers.length === 0 ? (
-            <div className="bg-white/80 rounded-2xl p-8 text-center">
+            <div className="bg-white/80 rounded-2xl p-8 text-center flex items-center justify-center" style={{ minHeight: "280px" }}>
               <p className="text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
                 {t("home", "noFeaturedDeals")}
               </p>
@@ -320,6 +322,7 @@ export default function HomePage() {
               </div>
             </div>
           )}
+          </div>
         </section>
 
         {/* Nearby Restaurants (if location enabled) */}
@@ -374,8 +377,10 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Fixed min-height to prevent CLS when switching between empty/loaded states */}
+          <div style={{ minHeight: "260px" }}>
           {popularRestaurants.length === 0 ? (
-            <div className="bg-white/80 rounded-2xl p-8 text-center">
+            <div className="bg-white/80 rounded-2xl p-8 text-center flex items-center justify-center" style={{ minHeight: "260px" }}>
               <p className="text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
                 {t("home", "noPopularRestaurants")}
               </p>
@@ -409,6 +414,7 @@ export default function HomePage() {
               ))}
             </div>
           )}
+          </div>
         </section>
       </main>
 
