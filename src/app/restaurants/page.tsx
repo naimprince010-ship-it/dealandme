@@ -69,61 +69,34 @@ export default function RestaurantsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Check auth first
-        const authRes = await fetch("/api/auth/me");
-        const authData = await authRes.json();
+        const res = await fetch("/api/restaurants-page");
+        const data = await res.json();
 
-        if (!authData.authenticated || authData.user?.type !== "CUSTOMER") {
+        if (res.status === 401) {
           router.push("/login");
           return;
         }
 
-                // Fetch restaurants, favorites, recently visited, recommendations, and areas in parallel
-                const [restaurantsRes, favoritesRes, visitHistoryRes, recommendationsRes, areasRes] = await Promise.all([
-                  fetch("/api/restaurants"),
-                  fetch("/api/favorites"),
-                  fetch("/api/visit-history"),
-                  fetch("/api/recommendations"),
-                  fetch("/api/areas"),
-                ]);
-
-        const restaurantsData = await restaurantsRes.json();
-        if (!restaurantsRes.ok) {
-          throw new Error(restaurantsData.error || "Failed to fetch restaurants");
-        }
-        setGroupedRestaurants(restaurantsData.groupedByArea || {});
-
-        // Set favorites
-        if (favoritesRes.ok) {
-          const favoritesData = await favoritesRes.json();
-          const favIds = new Set<string>(
-            favoritesData.favorites?.map((f: { restaurantId: string }) => f.restaurantId) || []
-          );
-          setFavorites(favIds);
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to fetch restaurants");
         }
 
-        // Set recently visited
-        if (visitHistoryRes.ok) {
-          const visitData = await visitHistoryRes.json();
-          setRecentlyVisited(visitData.recentlyVisited || []);
+        setGroupedRestaurants(data.restaurants?.groupedByArea || {});
+
+        const favIds = new Set<string>(
+          data.favorites?.favorites?.map((f: { restaurantId: string }) => f.restaurantId) || []
+        );
+        setFavorites(favIds);
+
+        setRecentlyVisited(data.visitHistory?.recentlyVisited || []);
+
+        setRecommendations(data.recommendations?.recommendations || []);
+        if (data.recommendations?.recommendations?.length > 0 && data.recommendations?.preferences?.totalVisits > 0) {
+          setShowRecommendations(true);
         }
 
-              // Set recommendations
-              if (recommendationsRes.ok) {
-                const recData = await recommendationsRes.json();
-                setRecommendations(recData.recommendations || []);
-                // Show recommendations section if user has some history
-                if (recData.recommendations?.length > 0 && recData.preferences?.totalVisits > 0) {
-                  setShowRecommendations(true);
-                }
-              }
-
-              // Set areas
-              if (areasRes.ok) {
-                const areasData = await areasRes.json();
-                setAreas(areasData.areas || []);
-              }
-            } catch (err) {
+        setAreas(data.areas?.areas || []);
+      } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setLoading(false);
