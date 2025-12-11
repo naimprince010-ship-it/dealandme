@@ -1,10 +1,18 @@
-const CACHE_NAME = 'dealbox-v3';
+const CACHE_NAME = 'dealandme-v4';
 const STATIC_ASSETS = [
   '/',
+  '/login',
+  '/restaurant/login',
   '/manifest.json',
+  '/manifest-restaurant.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/icon-maskable-512x512.png',
   '/icons/icon-192x192.svg',
   '/icons/icon-512x512.svg',
   '/icons/icon-maskable.svg',
+  '/icons/restaurant-icon-192x192.png',
+  '/icons/restaurant-icon-512x512.png',
 ];
 
 // Push notification event handler
