@@ -9,8 +9,14 @@ function isOffPeakHours(): boolean {
 }
 
 export async function GET() {
+  const apiStart = Date.now();
+  const timings: Record<string, number> = {};
+  
   try {
+    const t0 = Date.now();
     const customer = await getCustomer();
+    timings.auth = Date.now() - t0;
+    
     if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -20,92 +26,114 @@ export async function GET() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const offPeak = isOffPeakHours();
 
-    const [
-      allRestaurants,
-      favorites,
-      visits,
-      coupons,
-      areas,
-    ] = await Promise.all([
-      prisma.restaurant.findMany({
-        where: {
-          isActive: true,
-          paymentOverdue: false,
-        },
-        include: {
-          offer: {
-            select: {
-              id: true,
-              offerText: true,
-              isActive: true,
-              photoUrl: true,
-              discountType: true,
-              discountValue: true,
-            },
+    // Query 1: Restaurants with offers
+    const t1 = Date.now();
+    const allRestaurants = await prisma.restaurant.findMany({
+      where: {
+        isActive: true,
+        paymentOverdue: false,
+      },
+      include: {
+        offer: {
+          select: {
+            id: true,
+            offerText: true,
+            isActive: true,
+            photoUrl: true,
+            discountType: true,
+            discountValue: true,
           },
         },
-        orderBy: [{ area: "asc" }, { name: "asc" }],
-      }),
-      prisma.favorite.findMany({
-        where: { userId },
-        select: {
-          restaurantId: true,
-          restaurant: {
-            select: {
-              cuisine: true,
-              area: true,
-            },
+      },
+      orderBy: [{ area: "asc" }, { name: "asc" }],
+    });
+    timings.restaurants = Date.now() - t1;
+
+    // Query 2: User favorites
+    const t2 = Date.now();
+    const favorites = await prisma.favorite.findMany({
+      where: { userId },
+      select: {
+        restaurantId: true,
+        restaurant: {
+          select: {
+            cuisine: true,
+            area: true,
           },
         },
-      }),
-      prisma.visitHistory.findMany({
-        where: {
-          userId,
-          visitedAt: { gte: thirtyDaysAgo },
-        },
-        orderBy: { visitedAt: "desc" },
-        take: 50,
-        select: {
-          restaurantId: true,
-          visitedAt: true,
-          restaurant: {
-            select: {
-              id: true,
-              name: true,
-              area: true,
-              cuisine: true,
-              offer: {
-                select: {
-                  offerText: true,
-                  isActive: true,
-                  photoUrl: true,
-                },
+      },
+    });
+    timings.favorites = Date.now() - t2;
+
+    // Query 3: Visit history
+    const t3 = Date.now();
+    const visits = await prisma.visitHistory.findMany({
+      where: {
+        userId,
+        visitedAt: { gte: thirtyDaysAgo },
+      },
+      orderBy: { visitedAt: "desc" },
+      take: 50,
+      select: {
+        restaurantId: true,
+        visitedAt: true,
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            area: true,
+            cuisine: true,
+            offer: {
+              select: {
+                offerText: true,
+                isActive: true,
+                photoUrl: true,
               },
             },
           },
         },
-      }),
-      prisma.coupon.findMany({
-        where: { userId },
-        select: {
-          restaurant: {
-            select: {
-              cuisine: true,
-              area: true,
-            },
+      },
+    });
+    timings.visitHistory = Date.now() - t3;
+
+    // Query 4: User coupons
+    const t4 = Date.now();
+    const coupons = await prisma.coupon.findMany({
+      where: { userId },
+      select: {
+        restaurant: {
+          select: {
+            cuisine: true,
+            area: true,
           },
         },
-      }),
-      prisma.area.findMany({
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        select: {
-          id: true,
-          nameEn: true,
-          nameBn: true,
-        },
-      }),
-    ]);
+      },
+    });
+    timings.coupons = Date.now() - t4;
+
+    // Query 5: Areas
+    const t5 = Date.now();
+    const areas = await prisma.area.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        nameEn: true,
+        nameBn: true,
+      },
+    });
+    timings.areas = Date.now() - t5;
+
+    // Log all timings
+    timings.totalQueries = timings.restaurants + timings.favorites + timings.visitHistory + timings.coupons + timings.areas;
+    console.log("=== API TIMING BREAKDOWN ===");
+    console.log("Auth:", timings.auth, "ms");
+    console.log("Restaurants query:", timings.restaurants, "ms");
+    console.log("Favorites query:", timings.favorites, "ms");
+    console.log("VisitHistory query:", timings.visitHistory, "ms");
+    console.log("Coupons query:", timings.coupons, "ms");
+    console.log("Areas query:", timings.areas, "ms");
+    console.log("Total queries:", timings.totalQueries, "ms");
 
     const restaurants = allRestaurants
       .filter((r) => r.offer && r.offer.isActive)
@@ -261,6 +289,15 @@ export async function GET() {
       .slice(0, 3)
       .map(([area]) => area);
 
+    // Calculate processing time and total API time
+    const processingTime = Date.now() - (apiStart + timings.auth + timings.totalQueries);
+    timings.processing = processingTime;
+    timings.totalApi = Date.now() - apiStart;
+    
+    console.log("Processing time:", timings.processing, "ms");
+    console.log("TOTAL API TIME:", timings.totalApi, "ms");
+    console.log("=== END TIMING ===");
+
     return NextResponse.json({
       restaurants: {
         restaurants,
@@ -284,6 +321,10 @@ export async function GET() {
       },
       areas: {
         areas,
+      },
+      // Include timings in response for debugging
+      _debug: {
+        timings,
       },
     });
   } catch (error) {
