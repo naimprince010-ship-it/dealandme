@@ -1,0 +1,35 @@
+{
+  "id": "/restaurant",
+  "name": "Dealandme Restaurant",
+  "short_name": "Dealandme Partner",
+  "description": "Restaurant partner app for managing offers and validating coupons",
+  "start_url": "/restaurant/login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5BA88B",
+  "orientation": "portrait",
+  "categories": ["business", "food"],
+  "icons": [
+    {
+      "src": "/icons/restaurant-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/restaurant-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/restaurant-icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
