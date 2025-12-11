@@ -4,10 +4,14 @@ import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { LanguageProvider } from "@/lib/LanguageContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: "swap",
+});
 const hindSiliguri = Hind_Siliguri({ 
-  weight: ["400", "500", "600", "700"],
-  subsets: ["bengali", "latin"],
+  weight: ["400", "700"],
+  subsets: ["bengali"],
+  display: "swap",
   variable: "--font-bangla",
 });
 
