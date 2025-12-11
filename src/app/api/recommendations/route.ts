@@ -11,40 +11,58 @@ export async function GET() {
     }
 
     const userId = customer.id;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Get user's favorite restaurants
-    const favorites = await prisma.favorite.findMany({
-      where: { userId },
-      include: { restaurant: true },
-    });
+    // Run all queries in parallel for better performance
+    const [favorites, visits, coupons, restaurants] = await Promise.all([
+      // Get user's favorite restaurants
+      prisma.favorite.findMany({
+        where: { userId },
+        include: { restaurant: true },
+      }),
+      // Get user's visit history (last 30 days)
+      prisma.visitHistory.findMany({
+        where: {
+          userId,
+          visitedAt: { gte: thirtyDaysAgo },
+        },
+        include: { restaurant: true },
+      }),
+      // Get user's coupon history
+      prisma.coupon.findMany({
+        where: { userId },
+        include: { restaurant: true },
+      }),
+      // Get all active restaurants with offers
+      prisma.restaurant.findMany({
+        where: {
+          isActive: true,
+          offer: {
+            isActive: true,
+          },
+        },
+        include: {
+          offer: true,
+        },
+      }),
+    ]);
+
+    // Process favorites
     const favoriteIds = new Set(favorites.map((f) => f.restaurantId));
     const favoriteCuisines = favorites
       .map((f) => f.restaurant.cuisine)
       .filter(Boolean) as string[];
     const favoriteAreas = favorites.map((f) => f.restaurant.area);
 
-    // Get user's visit history (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const visits = await prisma.visitHistory.findMany({
-      where: {
-        userId,
-        visitedAt: { gte: thirtyDaysAgo },
-      },
-      include: { restaurant: true },
-    });
+    // Process visits
     const visitedIds = new Set(visits.map((v) => v.restaurantId));
     const visitedCuisines = visits
       .map((v) => v.restaurant.cuisine)
       .filter(Boolean) as string[];
     const visitedAreas = visits.map((v) => v.restaurant.area);
 
-    // Get user's coupon history
-    const coupons = await prisma.coupon.findMany({
-      where: { userId },
-      include: { restaurant: true },
-    });
+    // Process coupons
     const couponCuisines = coupons
       .map((c) => c.restaurant.cuisine)
       .filter(Boolean) as string[];
@@ -64,19 +82,6 @@ export async function GET() {
     const areaCount: Record<string, number> = {};
     allAreas.forEach((a) => {
       areaCount[a] = (areaCount[a] || 0) + 1;
-    });
-
-    // Get all active restaurants with offers
-    const restaurants = await prisma.restaurant.findMany({
-      where: {
-        isActive: true,
-        offer: {
-          isActive: true,
-        },
-      },
-      include: {
-        offer: true,
-      },
     });
 
     // Score each restaurant
