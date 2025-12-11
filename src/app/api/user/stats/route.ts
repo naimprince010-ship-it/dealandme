@@ -11,42 +11,41 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get total coupons used
-    const couponsUsed = await prisma.coupon.count({
-      where: {
-        userId: session.userId,
-        status: "USED",
-      },
-    });
-
-    // Get unique restaurants tried (where coupon was used)
-    const restaurantsTried = await prisma.coupon.groupBy({
-      by: ["restaurantId"],
-      where: {
-        userId: session.userId,
-        status: "USED",
-      },
-    });
-
-    // Get total coupons generated
-    const couponsGenerated = await prisma.coupon.count({
-      where: {
-        userId: session.userId,
-      },
-    });
-
-    // Get referral count
-    const referralsCount = await prisma.referral.count({
-      where: {
-        referrerId: session.userId,
-      },
-    });
-
-    // Get user's referral code
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { referralCode: true },
-    });
+    // Run all queries in parallel for better performance
+    const [couponsUsed, restaurantsTried, couponsGenerated, referralsCount, user] = await Promise.all([
+      // Get total coupons used
+      prisma.coupon.count({
+        where: {
+          userId: session.userId,
+          status: "USED",
+        },
+      }),
+      // Get unique restaurants tried (where coupon was used)
+      prisma.coupon.groupBy({
+        by: ["restaurantId"],
+        where: {
+          userId: session.userId,
+          status: "USED",
+        },
+      }),
+      // Get total coupons generated
+      prisma.coupon.count({
+        where: {
+          userId: session.userId,
+        },
+      }),
+      // Get referral count
+      prisma.referral.count({
+        where: {
+          referrerId: session.userId,
+        },
+      }),
+      // Get user's referral code
+      prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { referralCode: true },
+      }),
+    ]);
 
     // Calculate badges
     const badges = [];
