@@ -132,6 +132,7 @@ model Coupon {
 
   @@index([restaurantId, createdAt])
   @@index([userId, createdAt])
+  @@index([userId, status])
   @@index([status, expiresAt])
   @@map("coupons")
 }
