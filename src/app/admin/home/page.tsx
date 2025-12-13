@@ -62,6 +62,188 @@ interface Restaurant {
   } | null;
 }
 
+// Comprehensive emoji mapping for all food/restaurant categories
+const EMOJI_MAP: Record<string, string> = {
+  // Location & General
+  near_me: "📍",
+  location: "📍",
+  nearby: "📍",
+  
+  // Restaurant Types
+  buffet: "🍽️",
+  cafe: "☕",
+  coffee: "☕",
+  diler: "🍛",
+  cooking: "👨‍🍳",
+  chef: "👨‍🍳",
+  stoas: "🏪",
+  store: "🏪",
+  shop: "🏪",
+  restaurant: "🍴",
+  
+  // Fast Food & Street Food
+  fast_food: "🍔",
+  burger: "🍔",
+  hamburger: "🍔",
+  hotdog: "🌭",
+  hot_dog: "🌭",
+  sandwich: "🥪",
+  wrap: "🌯",
+  burrito: "🌯",
+  taco: "🌮",
+  fries: "🍟",
+  french_fries: "🍟",
+  
+  // Asian Cuisine
+  chinese: "🥡",
+  asian: "🥢",
+  japanese: "🍱",
+  sushi: "🍣",
+  ramen: "🍜",
+  noodles: "🍜",
+  thai: "🍜",
+  korean: "🥢",
+  vietnamese: "🍜",
+  dim_sum: "🥟",
+  dumpling: "🥟",
+  dumplings: "🥟",
+  momo: "🥟",
+  
+  // Indian & South Asian
+  indian: "🍛",
+  curry: "🍛",
+  biryani: "🍚",
+  rice: "🍚",
+  tandoori: "🍗",
+  naan: "🫓",
+  paratha: "🫓",
+  dosa: "🫓",
+  
+  // Italian & Mediterranean
+  pizza: "🍕",
+  pasta: "🍝",
+  spaghetti: "🍝",
+  italian: "🍝",
+  mediterranean: "🥙",
+  kebab: "🥙",
+  shawarma: "🥙",
+  falafel: "🧆",
+  
+  // Desserts & Sweets
+  dessert: "🍰",
+  cake: "🎂",
+  cakes: "🧁",
+  pastry: "🧁",
+  cupcake: "🧁",
+  donut: "🍩",
+  doughnut: "🍩",
+  cookie: "🍪",
+  cookies: "🍪",
+  chocolate: "🍫",
+  candy: "🍬",
+  sweet: "🍭",
+  sweets: "🍭",
+  mishti: "🍬",
+  
+  // Ice Cream & Frozen
+  ice_cream: "🍦",
+  icecream: "🍦",
+  gelato: "🍨",
+  frozen: "🍨",
+  
+  // Drinks & Beverages
+  juice: "🧃",
+  drinks: "🥤",
+  beverage: "🥤",
+  smoothie: "🥤",
+  shake: "🥛",
+  milkshake: "🥛",
+  tea: "🍵",
+  chai: "🍵",
+  bubble_tea: "🧋",
+  boba: "🧋",
+  lassi: "🥛",
+  
+  // Meat & BBQ
+  bbq: "🍖",
+  grill: "🍖",
+  grilled: "🍖",
+  meat: "🥩",
+  steak: "🥩",
+  chicken: "🍗",
+  wings: "🍗",
+  fried_chicken: "🍗",
+  
+  // Seafood
+  seafood: "🦐",
+  fish: "🐟",
+  shrimp: "🦐",
+  prawn: "🦐",
+  crab: "🦀",
+  lobster: "🦞",
+  sashimi: "🍣",
+  
+  // Breakfast
+  breakfast: "🍳",
+  egg: "🥚",
+  eggs: "🍳",
+  pancake: "🥞",
+  pancakes: "🥞",
+  waffle: "🧇",
+  waffles: "🧇",
+  toast: "🍞",
+  bread: "🍞",
+  croissant: "🥐",
+  bagel: "🥯",
+  
+  // Healthy & Vegetarian
+  healthy: "🥗",
+  salad: "🥗",
+  vegan: "🥬",
+  vegetarian: "🥬",
+  veggie: "🥬",
+  organic: "🌱",
+  
+  // Fruits & Vegetables
+  fruit: "🍎",
+  fruits: "🍇",
+  apple: "🍎",
+  banana: "🍌",
+  orange: "🍊",
+  mango: "🥭",
+  watermelon: "🍉",
+  strawberry: "🍓",
+  vegetable: "🥕",
+  vegetables: "🥦",
+  
+  // Snacks
+  snack: "🍿",
+  snacks: "🍿",
+  popcorn: "🍿",
+  chips: "🍟",
+  nachos: "🧀",
+  cheese: "🧀",
+  
+  // Special Categories
+  halal: "🕌",
+  premium: "⭐",
+  special: "✨",
+  new: "🆕",
+  popular: "🔥",
+  trending: "📈",
+  offer: "🏷️",
+  discount: "💰",
+  
+  // Default
+  custom: "✏️",
+  default: "📁",
+};
+
+// Helper function to get emoji for any icon key
+function getIconEmoji(iconKey: string): string {
+  return EMOJI_MAP[iconKey] || EMOJI_MAP[iconKey.toLowerCase()] || "📁";
+}
+
 const ICON_OPTIONS = [
   { key: "near_me", label: "Near Me", icon: "📍" },
   { key: "buffet", label: "Buffet", icon: "🍽️" },
@@ -83,6 +265,15 @@ const ICON_OPTIONS = [
   { key: "ice_cream", label: "Ice Cream", icon: "🍦" },
   { key: "breakfast", label: "Breakfast", icon: "🍳" },
   { key: "healthy", label: "Healthy", icon: "🥗" },
+  { key: "burger", label: "Burger", icon: "🍔" },
+  { key: "sushi", label: "Sushi", icon: "🍣" },
+  { key: "noodles", label: "Noodles", icon: "🍜" },
+  { key: "pasta", label: "Pasta", icon: "🍝" },
+  { key: "chicken", label: "Chicken", icon: "🍗" },
+  { key: "steak", label: "Steak", icon: "🥩" },
+  { key: "momo", label: "Momo/Dumplings", icon: "🥟" },
+  { key: "kebab", label: "Kebab/Shawarma", icon: "🥙" },
+  { key: "tea", label: "Tea/Chai", icon: "🍵" },
   { key: "custom", label: "Custom (type below)", icon: "✏️" },
 ];
 
@@ -430,9 +621,9 @@ export default function AdminHomePage() {
                                       }}
                                       className="px-3 py-2 border border-gray-200 rounded-lg w-full max-w-xs"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      This will show a default folder icon. You can add custom emoji icons later.
-                                    </p>
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                          Type any food name (e.g., sushi, burger, momo, kebab) - matching emoji will be shown automatically!
+                                                                        </p>
                                   </div>
                                 )}
                                 <div className="flex gap-2 mt-4">
@@ -468,7 +659,7 @@ export default function AdminHomePage() {
                   >
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">
-                        {ICON_OPTIONS.find((o) => o.key === cat.iconKey)?.icon || "📁"}
+                        {getIconEmoji(cat.iconKey)}
                       </span>
                       <div>
                         <p className="font-medium text-gray-800">{cat.labelEn}</p>
