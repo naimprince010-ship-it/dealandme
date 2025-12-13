@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, area, description, username, password } = await request.json();
+    const { name, area, description, username, password, coverImage } = await request.json();
 
     // Validate required fields
     if (!name || !area || !username || !password) {
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
         name,
         area,
         description: description || null,
+        coverImage: coverImage || null,
         username,
         passwordHash,
         isActive: true,
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
         name: restaurant.name,
         area: restaurant.area,
         description: restaurant.description,
+        coverImage: restaurant.coverImage,
         username: restaurant.username,
         isActive: restaurant.isActive,
         createdAt: restaurant.createdAt,
