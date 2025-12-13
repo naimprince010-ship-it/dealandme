@@ -1,85 +1,88 @@
 /**
- * SMS Service for BulkSMSBD
- * API Documentation: https://bulksmsbd.net/developers
+ * SMS Service for SSL Wireless (SMSPlus)
+ * Portal: https://ismsplus.sslwireless.com/
  */
 
-interface SMSResponse {
-  response_code: number;
-  success_message?: string;
-  error_message?: string;
+interface SSLWirelessResponse {
+  status?: string;
+  status_code?: number;
+  message?: string;
+  error?: string;
+  [key: string]: any;
 }
 
 /**
- * Send SMS via BulkSMSBD API
- * @param phone - Phone number in Bangladesh format (e.g., 8801XXXXXXXXX)
- * @param message - SMS message content
- * @returns Promise<boolean> - true if SMS sent successfully
+ * Send SMS via SSL Wireless API
  */
-export async function sendSMS(phone: string, message: string): Promise<boolean> {
-  const apiKey = process.env.BULKSMSBD_API_KEY;
-  const senderId = process.env.BULKSMSBD_SENDER_ID;
+export async function sendSMS(
+  phone: string,
+  message: string
+): Promise<boolean> {
+  const apiToken = process.env.SSLW_API_TOKEN;
+  const senderId = process.env.SSLW_SID;
 
-  if (!apiKey || !senderId) {
-    console.error("SMS configuration missing: BULKSMSBD_API_KEY or BULKSMSBD_SENDER_ID not set");
+  if (!apiToken || !senderId) {
+    console.error(
+      "SSL Wireless not configured: SSLW_API_TOKEN or SSLW_SID missing"
+    );
     return false;
   }
 
-  // Normalize phone number to Bangladesh format
   const normalizedPhone = normalizePhoneNumber(phone);
-
-  const params = new URLSearchParams({
-    api_key: apiKey,
-    senderid: senderId,
-    number: normalizedPhone,
-    message: message,
-    type: "text",
-  });
 
   try {
     const response = await fetch(
-      `https://bulksmsbd.net/api/smsapi?${params.toString()}`,
+      "https://smsplus.sslwireless.com/api/v3/send-sms",
       {
-        method: "GET",
+        method: "POST",
         headers: {
-          "Accept": "application/json",
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
+        body: JSON.stringify({
+          api_token: apiToken,
+          sid: senderId,
+          msisdn: normalizedPhone, // 8801XXXXXXXXX
+          sms: message,
+          csms_id: `dealandme_${Date.now()}_${Math.random()
+            .toString(16)
+            .slice(2)}`,
+        }),
       }
     );
 
-    const data: SMSResponse = await response.json();
+    const data: SSLWirelessResponse = await response.json().catch(() => ({}));
 
-    // BulkSMSBD Response Codes:
-    // 202 = SMS Submitted Successfully
-    // 1001 = Invalid Number
-    // 1002 = Sender ID not correct/disabled
-    // 1007 = Balance Insufficient
-    if (data.response_code === 202) {
-      console.log(`SMS sent successfully to ${normalizedPhone}`);
-      return true;
-    } else {
-      console.error(`SMS failed with code ${data.response_code}: ${data.error_message || "Unknown error"}`);
-      return false;
+    const success =
+      response.ok &&
+      (data?.status?.toLowerCase?.().includes("success") ||
+        data?.message?.toLowerCase?.().includes("success") ||
+        data?.status_code === 200);
+
+    if (!success) {
+      console.error("SSL Wireless SMS failed:", data);
     }
+
+    return success;
   } catch (error) {
-    console.error("SMS sending error:", error);
+    console.error("SSL Wireless SMS error:", error);
     return false;
   }
 }
 
 /**
  * Send OTP SMS
- * @param phone - Phone number
- * @param otp - OTP code
- * @returns Promise<boolean>
  */
-export async function sendOtpSMS(phone: string, otp: string): Promise<boolean> {
+export async function sendOtpSMS(
+  phone: string,
+  otp: string
+): Promise<boolean> {
   const message = `Your Dealandme OTP is ${otp}. Valid for 5 minutes. Do not share with anyone.`;
   return sendSMS(phone, message);
 }
 
 /**
- * Generate a random 6-digit OTP
- * @returns string - 6-digit OTP
+ * Generate 6 digit OTP
  */
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -87,21 +90,14 @@ export function generateOTP(): string {
 
 /**
  * Normalize phone number to Bangladesh format (8801XXXXXXXXX)
- * Handles various input formats:
- * - 01XXXXXXXXX -> 8801XXXXXXXXX
- * - +8801XXXXXXXXX -> 8801XXXXXXXXX
- * - 8801XXXXXXXXX -> 8801XXXXXXXXX
  */
 export function normalizePhoneNumber(phone: string): string {
-  // Remove all non-digit characters
   let cleaned = phone.replace(/\D/g, "");
 
-  // If starts with 0, replace with 880
   if (cleaned.startsWith("0")) {
     cleaned = "88" + cleaned;
   }
 
-  // If doesn't start with 880, add it
   if (!cleaned.startsWith("880")) {
     cleaned = "880" + cleaned;
   }
@@ -111,8 +107,7 @@ export function normalizePhoneNumber(phone: string): string {
 
 /**
  * Check if SMS service is configured
- * @returns boolean
  */
 export function isSMSConfigured(): boolean {
-  return !!(process.env.BULKSMSBD_API_KEY && process.env.BULKSMSBD_SENDER_ID);
+  return Boolean(process.env.SSLW_API_TOKEN && process.env.SSLW_SID);
 }
