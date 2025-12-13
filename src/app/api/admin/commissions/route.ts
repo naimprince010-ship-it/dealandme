@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getAdmin } from "@/lib/auth";
 
 // GET - Get commission summary for all restaurants
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "ADMIN") {
+    const admin = await getAdmin();
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -115,16 +107,8 @@ export async function GET(request: NextRequest) {
 // POST - Mark commissions as paid for a restaurant
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
-
-    if (!sessionCookie) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "ADMIN") {
+    const admin = await getAdmin();
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
