@@ -1,7 +1,12 @@
 /**
- * SMS Service for SSL Wireless (SMSPlus)
- * Uses application/x-www-form-urlencoded (required by SSL Wireless)
+ * SSL Wireless Push SMS (API v3.0.0) – Document compliant
  */
+
+interface SSLWirelessResponse {
+  status?: "SUCCESS" | "FAILED";
+  status_code?: number;
+  error_message?: string;
+}
 
 export async function sendSMS(
   phone: string,
@@ -17,36 +22,36 @@ export async function sendSMS(
 
   const normalizedPhone = normalizePhoneNumber(phone);
 
-  try {
-    const params = new URLSearchParams({
-      api_token: apiToken,
-      sid: senderId,
-      msisdn: normalizedPhone,
-      sms: message,
-      csms_id: `dealandme_${Date.now()}`,
-    });
+  // csms_id must be <= 20 chars and unique per day
+  const csms_id = Math.random().toString(36).substring(2, 18);
 
+  try {
     const response = await fetch(
       "https://smsplus.sslwireless.com/api/v3/send-sms",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: params.toString(),
+        body: JSON.stringify({
+          api_token: apiToken,
+          sid: senderId,
+          msisdn: normalizedPhone,
+          sms: message,
+          csms_id,
+        }),
       }
     );
 
-    const data = await response.json().catch(() => ({}));
+    const data: SSLWirelessResponse = await response.json();
 
     console.log("SSL Wireless response:", data);
 
-    const success =
-      response.ok &&
-      (data?.status === "SUCCESS" ||
-        data?.status_code === 200);
-
-    return success;
+    return (
+      data?.status === "SUCCESS" &&
+      data?.status_code === 200
+    );
   } catch (error) {
     console.error("SSL Wireless SMS error:", error);
     return false;
@@ -54,7 +59,7 @@ export async function sendSMS(
 }
 
 /**
- * Send OTP SMS
+ * OTP sender
  */
 export async function sendOtpSMS(
   phone: string,
@@ -64,33 +69,17 @@ export async function sendOtpSMS(
   return sendSMS(phone, message);
 }
 
-/**
- * Generate 6 digit OTP
- */
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-/**
- * Normalize phone number to Bangladesh format (8801XXXXXXXXX)
- */
 export function normalizePhoneNumber(phone: string): string {
   let cleaned = phone.replace(/\D/g, "");
-
-  if (cleaned.startsWith("0")) {
-    cleaned = "88" + cleaned;
-  }
-
-  if (!cleaned.startsWith("880")) {
-    cleaned = "880" + cleaned;
-  }
-
+  if (cleaned.startsWith("0")) cleaned = "88" + cleaned;
+  if (!cleaned.startsWith("880")) cleaned = "880" + cleaned;
   return cleaned;
 }
 
-/**
- * Check if SMS service is configured
- */
 export function isSMSConfigured(): boolean {
   return Boolean(process.env.SSLW_API_TOKEN && process.env.SSLW_SID);
 }
