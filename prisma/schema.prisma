@@ -45,6 +45,8 @@ enum OfferAppliesTo {
 model User {
   id           String   @id @default(uuid())
   phone        String   @unique
+  name         String?
+  email        String?
   referralCode String?  @unique @map("referral_code")
   referredBy   String?  @map("referred_by")
   photoUrl     String?  @map("photo_url")
@@ -55,6 +57,7 @@ model User {
   referrals         Referral[] @relation("ReferrerRelation")
   visitHistory      VisitHistory[]
   pushSubscriptions PushSubscription[]
+  userBadges        UserBadge[]
 
   @@map("users")
 }
@@ -358,4 +361,48 @@ model HomeCategoryRestaurant {
   @@unique([categoryId, restaurantId])
   @@index([categoryId, sortOrder])
   @@map("home_category_restaurants")
+}
+
+// Badge criteria type enum
+enum BadgeCriteriaType {
+  COUPONS_USED
+  COUPONS_GENERATED
+  RESTAURANTS_VISITED
+  REFERRALS
+}
+
+// Badges for gamification (admin-controlled)
+model Badge {
+  id           String            @id @default(uuid())
+  key          String            @unique
+  nameEn       String            @map("name_en")
+  nameBn       String            @map("name_bn")
+  description  String?
+  icon         String
+  criteriaType BadgeCriteriaType @map("criteria_type")
+  threshold    Int
+  sortOrder    Int               @default(0) @map("sort_order")
+  isActive     Boolean           @default(true) @map("is_active")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  userBadges UserBadge[]
+
+  @@index([isActive, sortOrder])
+  @@map("badges")
+}
+
+// User badge unlocks (tracks when a user unlocked a badge)
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  badgeId    String   @map("badge_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
 }

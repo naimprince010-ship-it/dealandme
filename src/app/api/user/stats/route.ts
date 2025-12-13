@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { BadgeCriteriaType } from "@prisma/client";
 
 // GET - Get user stats for badges
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
     }
 
     // Run all queries in parallel for better performance
-    const [couponsUsed, restaurantsTried, couponsGenerated, referralsCount, user] = await Promise.all([
+    const [couponsUsed, restaurantsTried, couponsGenerated, referralsCount, user, allBadges] = await Promise.all([
       // Get total coupons used
       prisma.coupon.count({
         where: {
@@ -45,26 +46,36 @@ export async function GET() {
         where: { id: session.userId },
         select: { referralCode: true },
       }),
+      // Get all active badges from database
+      prisma.badge.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
     ]);
 
-    // Calculate badges
-    const badges = [];
+    // Calculate which badges are unlocked based on user stats
+    const statsMap: Record<BadgeCriteriaType, number> = {
+      COUPONS_USED: couponsUsed,
+      COUPONS_GENERATED: couponsGenerated,
+      RESTAURANTS_VISITED: restaurantsTried.length,
+      REFERRALS: referralsCount,
+    };
 
-    // Coupon usage badges
-    if (couponsUsed >= 1) badges.push({ id: "first_coupon", name: "First Coupon", namebn: "প্রথম কুপন", icon: "🎫" });
-    if (couponsUsed >= 5) badges.push({ id: "coupon_5", name: "5 Coupons Used", namebn: "৫টি কুপন ব্যবহার", icon: "🎟️" });
-    if (couponsUsed >= 10) badges.push({ id: "coupon_10", name: "10 Coupons Used", namebn: "১০টি কুপন ব্যবহার", icon: "🏆" });
-    if (couponsUsed >= 25) badges.push({ id: "coupon_25", name: "25 Coupons Used", namebn: "২৫টি কুপন ব্যবহার", icon: "👑" });
-
-    // Restaurant exploration badges
-    if (restaurantsTried.length >= 1) badges.push({ id: "first_restaurant", name: "First Restaurant", namebn: "প্রথম রেস্টুরেন্ট", icon: "🍽️" });
-    if (restaurantsTried.length >= 3) badges.push({ id: "restaurant_3", name: "3 Restaurants Tried", namebn: "৩টি রেস্টুরেন্ট", icon: "🌟" });
-    if (restaurantsTried.length >= 5) badges.push({ id: "restaurant_5", name: "5 Restaurants Tried", namebn: "৫টি রেস্টুরেন্ট", icon: "⭐" });
-    if (restaurantsTried.length >= 10) badges.push({ id: "restaurant_10", name: "Explorer", namebn: "এক্সপ্লোরার", icon: "🗺️" });
-
-    // Referral badges
-    if (referralsCount >= 1) badges.push({ id: "first_referral", name: "First Referral", namebn: "প্রথম রেফারেল", icon: "🤝" });
-    if (referralsCount >= 5) badges.push({ id: "referral_5", name: "5 Referrals", namebn: "৫টি রেফারেল", icon: "💫" });
+    // Build badges array with unlock status
+    const badges = allBadges.map(badge => {
+      const userStat = statsMap[badge.criteriaType];
+      const isUnlocked = userStat >= badge.threshold;
+      return {
+        id: badge.key,
+        name: badge.nameEn,
+        namebn: badge.nameBn,
+        icon: badge.icon,
+        threshold: badge.threshold,
+        criteriaType: badge.criteriaType,
+        isUnlocked,
+        progress: Math.min(userStat, badge.threshold),
+      };
+    });
 
     return NextResponse.json({
       stats: {
