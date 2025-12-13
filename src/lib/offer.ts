@@ -1,5 +1,27 @@
 // Shared utilities for offer management
 
+// Offer applies to options with labels
+export const APPLIES_TO_OPTIONS = [
+  { value: "TOTAL_BILL", en: "Total Bill", bn: "সম্পূর্ণ বিল" },
+  { value: "SELECTED_ITEMS", en: "Selected Items", bn: "নির্বাচিত আইটেম" },
+  { value: "DINE_IN_ONLY", en: "Dine-in Only", bn: "শুধু ডাইন-ইন" },
+  { value: "TAKEAWAY_ONLY", en: "Takeaway Only", bn: "শুধু টেকঅ্যাওয়ে" },
+  { value: "FIRST_ORDER", en: "First Order", bn: "প্রথম অর্ডার" },
+  { value: "OTHER", en: "Other", bn: "অন্যান্য" },
+] as const;
+
+export type OfferAppliesToType = typeof APPLIES_TO_OPTIONS[number]["value"];
+
+// Get applies to label
+export function getAppliesToLabel(
+  appliesTo: OfferAppliesToType | null | undefined,
+  language: "en" | "bn" = "en"
+): string {
+  if (!appliesTo) return "";
+  const option = APPLIES_TO_OPTIONS.find((o) => o.value === appliesTo);
+  return option ? option[language] : "";
+}
+
 // Check if current time is in off-peak hours (3-6pm Bangladesh time, UTC+6)
 export function isOffPeakHours(date: Date = new Date()): boolean {
   const bdHour = (date.getUTCHours() + 6) % 24;
@@ -37,17 +59,30 @@ export function formatOfferText(offer: {
   discountValue?: number | null;
   maxDiscountAmount?: number | null;
   title?: string | null;
+  appliesTo?: OfferAppliesToType | null;
 }): string {
   // If we have structured discount info, generate text from it
   if (offer.discountType && offer.discountValue) {
+    let baseText = "";
     if (offer.discountType === "PERCENTAGE") {
       if (offer.maxDiscountAmount && offer.maxDiscountAmount > 0) {
-        return `${offer.discountValue}% off (Up to ৳${offer.maxDiscountAmount})`;
+        baseText = `${offer.discountValue}% off (Up to ৳${offer.maxDiscountAmount})`;
+      } else {
+        baseText = `${offer.discountValue}% off`;
       }
-      return `${offer.discountValue}% off`;
     } else {
-      return `৳${offer.discountValue} off`;
+      baseText = `৳${offer.discountValue} off`;
     }
+
+    // Add applies to suffix
+    if (offer.appliesTo && offer.appliesTo !== "OTHER") {
+      const appliesToLabel = getAppliesToLabel(offer.appliesTo, "en");
+      if (appliesToLabel) {
+        baseText += ` on ${appliesToLabel.toLowerCase()}`;
+      }
+    }
+
+    return baseText;
   }
 
   // Fallback to title if no discount info
@@ -64,17 +99,30 @@ export function formatOfferTextBn(offer: {
   discountValue?: number | null;
   maxDiscountAmount?: number | null;
   title?: string | null;
+  appliesTo?: OfferAppliesToType | null;
 }): string {
   // If we have structured discount info, generate text from it
   if (offer.discountType && offer.discountValue) {
+    let baseText = "";
     if (offer.discountType === "PERCENTAGE") {
       if (offer.maxDiscountAmount && offer.maxDiscountAmount > 0) {
-        return `${offer.discountValue}% ছাড় (সর্বোচ্চ ৳${offer.maxDiscountAmount})`;
+        baseText = `${offer.discountValue}% ছাড় (সর্বোচ্চ ৳${offer.maxDiscountAmount})`;
+      } else {
+        baseText = `${offer.discountValue}% ছাড়`;
       }
-      return `${offer.discountValue}% ছাড়`;
     } else {
-      return `৳${offer.discountValue} ছাড়`;
+      baseText = `৳${offer.discountValue} ছাড়`;
     }
+
+    // Add applies to suffix
+    if (offer.appliesTo && offer.appliesTo !== "OTHER") {
+      const appliesToLabel = getAppliesToLabel(offer.appliesTo, "bn");
+      if (appliesToLabel) {
+        baseText += ` - ${appliesToLabel}`;
+      }
+    }
+
+    return baseText;
   }
 
   // Fallback to title if no discount info

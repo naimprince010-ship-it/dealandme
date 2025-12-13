@@ -9,6 +9,8 @@ import {
   formatOfferText,
   TITLE_SUGGESTIONS,
   TERMS_SUGGESTIONS,
+  APPLIES_TO_OPTIONS,
+  OfferAppliesToType,
 } from "@/lib/offer";
 
 interface Offer {
@@ -22,6 +24,7 @@ interface Offer {
   description: string | null;
   terms: string | null;
   photoUrl: string | null;
+  appliesTo: OfferAppliesToType | null;
 }
 
 interface FormData {
@@ -33,6 +36,7 @@ interface FormData {
   terms: string;
   photoUrl: string;
   isActive: boolean;
+  appliesTo: OfferAppliesToType;
 }
 
 export default function EditOfferPage() {
@@ -55,6 +59,7 @@ export default function EditOfferPage() {
     terms: "",
     photoUrl: "",
     isActive: true,
+    appliesTo: "TOTAL_BILL",
   });
 
   useEffect(() => {
@@ -87,6 +92,7 @@ export default function EditOfferPage() {
               terms: offer.terms || "",
               photoUrl: offer.photoUrl || "",
               isActive: offer.isActive,
+              appliesTo: offer.appliesTo || "TOTAL_BILL",
             });
           }
         }
@@ -221,6 +227,7 @@ export default function EditOfferPage() {
         terms: formData.terms || null,
         photoUrl: formData.photoUrl || null,
         isActive: formData.isActive,
+        appliesTo: formData.appliesTo,
       };
 
       const res = await fetch("/api/restaurant/offer", {
@@ -257,6 +264,7 @@ export default function EditOfferPage() {
         ? parseFloat(formData.maxDiscountAmount)
         : null,
     title: formData.title,
+    appliesTo: formData.appliesTo,
   });
 
   if (loading) {
@@ -378,6 +386,30 @@ export default function EditOfferPage() {
                   </p>
                 </div>
               )}
+
+              {/* Discount Applies To */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  {language === "bn" ? "ডিসকাউন্ট প্রযোজ্য" : "Discount Applies To"}
+                </label>
+                <select
+                  name="appliesTo"
+                  value={formData.appliesTo}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                >
+                  {APPLIES_TO_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {language === "bn" ? option.bn : option.en}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-gray-500">
+                  {language === "bn"
+                    ? "কাস্টমার দেখবে: ৳50 off on total bill"
+                    : "Customer will see: ৳50 off on total bill"}
+                </p>
+              </div>
             </div>
           </div>
 
