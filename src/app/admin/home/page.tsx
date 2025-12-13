@@ -75,6 +75,15 @@ const ICON_OPTIONS = [
   { key: "thai", label: "Thai", icon: "🍜" },
   { key: "dessert", label: "Dessert", icon: "🍰" },
   { key: "pizza", label: "Pizza", icon: "🍕" },
+  { key: "cakes", label: "Cakes & Pastry", icon: "🧁" },
+  { key: "biryani", label: "Biryani", icon: "🍚" },
+  { key: "seafood", label: "Seafood", icon: "🦐" },
+  { key: "bbq", label: "BBQ/Grill", icon: "🍖" },
+  { key: "juice", label: "Juice & Drinks", icon: "🧃" },
+  { key: "ice_cream", label: "Ice Cream", icon: "🍦" },
+  { key: "breakfast", label: "Breakfast", icon: "🍳" },
+  { key: "healthy", label: "Healthy", icon: "🥗" },
+  { key: "custom", label: "Custom (type below)", icon: "✏️" },
 ];
 
 export default function AdminHomePage() {
@@ -87,14 +96,16 @@ export default function AdminHomePage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   
-  const [newCategory, setNewCategory] = useState({
-    key: "",
-    labelEn: "",
-    labelBn: "",
-    iconKey: "buffet",
-    sortOrder: 0,
-  });
-  const [showAddCategory, setShowAddCategory] = useState(false);
+    const [newCategory, setNewCategory] = useState({
+      key: "",
+      labelEn: "",
+      labelBn: "",
+      iconKey: "buffet",
+      sortOrder: 0,
+    });
+    const [showAddCategory, setShowAddCategory] = useState(false);
+    const [useCustomIcon, setUseCustomIcon] = useState(false);
+    const [customIconKey, setCustomIconKey] = useState("");
   
   // Category restaurants modal state
   const [selectedCategory, setSelectedCategory] = useState<HomeCategory | null>(null);
@@ -154,10 +165,12 @@ export default function AdminHomePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory),
       });
-      if (res.ok) {
-        setNewCategory({ key: "", labelEn: "", labelBn: "", iconKey: "buffet", sortOrder: 0 });
-        setShowAddCategory(false);
-        fetchData();
+            if (res.ok) {
+              setNewCategory({ key: "", labelEn: "", labelBn: "", iconKey: "buffet", sortOrder: 0 });
+              setShowAddCategory(false);
+              setUseCustomIcon(false);
+              setCustomIconKey("");
+              fetchData();
       } else {
         const data = await res.json();
         alert(data.error || "Failed to add category");
@@ -382,19 +395,47 @@ export default function AdminHomePage() {
                     onChange={(e) => setNewCategory({ ...newCategory, labelBn: e.target.value })}
                     className="px-3 py-2 border border-gray-200 rounded-lg"
                   />
-                  <select
-                    value={newCategory.iconKey}
-                    onChange={(e) => setNewCategory({ ...newCategory, iconKey: e.target.value })}
-                    className="px-3 py-2 border border-gray-200 rounded-lg"
-                  >
-                    {ICON_OPTIONS.map((opt) => (
-                      <option key={opt.key} value={opt.key}>
-                        {opt.icon} {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2 mt-4">
+                                  <select
+                                    value={useCustomIcon ? "custom" : newCategory.iconKey}
+                                    onChange={(e) => {
+                                      if (e.target.value === "custom") {
+                                        setUseCustomIcon(true);
+                                      } else {
+                                        setUseCustomIcon(false);
+                                        setNewCategory({ ...newCategory, iconKey: e.target.value });
+                                      }
+                                    }}
+                                    className="px-3 py-2 border border-gray-200 rounded-lg"
+                                  >
+                                    {ICON_OPTIONS.map((opt) => (
+                                      <option key={opt.key} value={opt.key}>
+                                        {opt.icon} {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                {useCustomIcon && (
+                                  <div className="mt-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Custom Icon Key (e.g., &quot;sushi&quot;, &quot;burger&quot;, &quot;noodles&quot;)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Type custom icon key..."
+                                      value={customIconKey}
+                                      onChange={(e) => {
+                                        const value = e.target.value.toLowerCase().replace(/\s/g, "_");
+                                        setCustomIconKey(value);
+                                        setNewCategory({ ...newCategory, iconKey: value });
+                                      }}
+                                      className="px-3 py-2 border border-gray-200 rounded-lg w-full max-w-xs"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      This will show a default folder icon. You can add custom emoji icons later.
+                                    </p>
+                                  </div>
+                                )}
+                                <div className="flex gap-2 mt-4">
                   <button
                     onClick={handleAddCategory}
                     disabled={saving}
@@ -402,12 +443,16 @@ export default function AdminHomePage() {
                   >
                     {saving ? "Saving..." : "Save"}
                   </button>
-                  <button
-                    onClick={() => setShowAddCategory(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
+                                    <button
+                                      onClick={() => {
+                                        setShowAddCategory(false);
+                                        setUseCustomIcon(false);
+                                        setCustomIconKey("");
+                                      }}
+                                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                    >
+                                      Cancel
+                                    </button>
                 </div>
               </div>
             )}
