@@ -3,6 +3,18 @@ import { prisma } from "@/lib/prisma";
 import { generateOTP, sendOtpSMS, isSMSConfigured, normalizePhoneNumber } from "@/lib/sms";
 
 const OTP_EXPIRY_MINUTES = 5;
+
+// Helper to detect preview environment - allows mock OTP in preview deployments
+function isPreviewEnvironment(req: NextRequest): boolean {
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv === "preview") return true;
+  
+  // Also check host for preview URLs
+  const host = req.headers.get("host") || "";
+  if (host.includes("-git-") && host.includes(".vercel.app")) return true;
+  
+  return false;
+}
 const OTP_COOLDOWN_SECONDS = 60;
 const MAX_OTP_ATTEMPTS_PER_HOUR = 5;
 
@@ -78,8 +90,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send OTP via SMS if configured, otherwise use mock mode
-    if (isSMSConfigured()) {
+    // Check if we should use real SMS (production only, not preview)
+    const isPreview = isPreviewEnvironment(request);
+    const shouldUseSMS = isSMSConfigured() && !isPreview;
+
+    // Send OTP via SMS if configured and not in preview, otherwise use mock mode
+    if (shouldUseSMS) {
       const smsSent = await sendOtpSMS(normalizedPhone, otp);
       if (!smsSent) {
         return NextResponse.json(
@@ -92,11 +108,11 @@ export async function POST(request: NextRequest) {
         message: "OTP sent successfully",
       });
     } else {
-      // Mock mode for development/testing - still accepts 123456
-      console.log(`[DEV MODE] OTP for ${normalizedPhone}: ${otp}`);
+      // Mock mode for development/testing/preview - accepts 123456
+      console.log(`[DEV/PREVIEW MODE] OTP for ${normalizedPhone}: ${otp}`);
       return NextResponse.json({
         success: true,
-        message: "OTP sent successfully (use 123456 for testing - SMS not configured)",
+        message: "OTP sent successfully (use 123456 for testing)",
       });
     }
   } catch (error) {
