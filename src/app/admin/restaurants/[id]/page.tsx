@@ -28,6 +28,8 @@ interface Restaurant {
   username: string;
   isActive: boolean;
   offPeakBoost: boolean;
+  commissionRate: number;
+  trialEndDate: string | null;
   offer: Offer | null;
   createdAt: string;
 }
@@ -49,6 +51,8 @@ export default function EditRestaurant() {
     isActive: true,
     newPassword: "",
     coverImage: "",
+    commissionRate: 10,
+    trialEndDate: "",
   });
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -90,6 +94,8 @@ export default function EditRestaurant() {
           isActive: data.restaurant.isActive,
           newPassword: "",
           coverImage: data.restaurant.coverImage || "",
+          commissionRate: data.restaurant.commissionRate || 10,
+          trialEndDate: data.restaurant.trialEndDate ? data.restaurant.trialEndDate.split("T")[0] : "",
         });
         if (data.restaurant.offer) {
           setOfferData({
@@ -353,6 +359,71 @@ export default function EditRestaurant() {
               <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                 Restaurant is active
               </label>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Commission & Trial Settings */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-900 mb-3">Commission & Trial Settings</h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="commissionRate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Commission Rate (৳ per coupon)
+                  </label>
+                  <input
+                    type="number"
+                    id="commissionRate"
+                    min="0"
+                    step="1"
+                    value={formData.commissionRate}
+                    onChange={(e) => setFormData({ ...formData, commissionRate: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Amount charged per redeemed coupon (default: ৳10)
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="trialEndDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Trial Period End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="trialEndDate"
+                    value={formData.trialEndDate}
+                    onChange={(e) => setFormData({ ...formData, trialEndDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    No commission charged until this date. Leave empty for no trial.
+                  </p>
+                  {formData.trialEndDate && new Date(formData.trialEndDate) > new Date() && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">
+                      Trial active until {new Date(formData.trialEndDate).toLocaleDateString()}
+                    </p>
+                  )}
+                  {formData.trialEndDate && new Date(formData.trialEndDate) <= new Date() && (
+                    <p className="text-xs text-orange-600 mt-1 font-medium">
+                      Trial period has ended
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const threeMonthsLater = new Date();
+                    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+                    setFormData({ ...formData, trialEndDate: threeMonthsLater.toISOString().split("T")[0] });
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Set 3-month trial from today
+                </button>
+              </div>
             </div>
 
             <hr className="border-gray-200" />

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         name: true,
         area: true,
         commissionRate: true,
+        trialEndDate: true,
       },
     });
 
@@ -54,13 +55,17 @@ export async function GET(request: NextRequest) {
     );
 
     // Calculate commission summary per restaurant
+    const now = new Date();
     const restaurantSummary = restaurants.map((restaurant) => {
       const restaurantCoupons = redeemedCoupons.filter(
         (c) => c.restaurantId === restaurant.id
       );
       
       const totalRedeemed = restaurantCoupons.length;
-      const commissionPerCoupon = restaurant.commissionRate;
+      
+      // Check if restaurant is in trial period
+      const isInTrial = restaurant.trialEndDate && new Date(restaurant.trialEndDate) > now;
+      const commissionPerCoupon = isInTrial ? 0 : restaurant.commissionRate;
       const totalCommission = totalRedeemed * commissionPerCoupon;
 
       // Check payment status
@@ -74,7 +79,9 @@ export async function GET(request: NextRequest) {
         restaurantId: restaurant.id,
         restaurantName: restaurant.name,
         area: restaurant.area,
-        commissionRate: commissionPerCoupon,
+        commissionRate: restaurant.commissionRate,
+        isInTrial,
+        trialEndDate: restaurant.trialEndDate,
         totalRedeemed,
         totalCommission,
         paidCoupons,

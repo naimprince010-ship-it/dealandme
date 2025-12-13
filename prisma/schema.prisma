@@ -73,6 +73,7 @@ model Restaurant {
   offPeakBoost    Boolean  @default(false) @map("off_peak_boost")
   commissionRate  Float    @default(10.0) @map("commission_rate")
   paymentOverdue  Boolean  @default(false) @map("payment_overdue")
+  trialEndDate    DateTime? @map("trial_end_date")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
