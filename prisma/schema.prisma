@@ -31,6 +31,16 @@ enum DiscountType {
   FLAT
 }
 
+// Enum for what the offer applies to
+enum OfferAppliesTo {
+  TOTAL_BILL
+  SELECTED_ITEMS
+  DINE_IN_ONLY
+  TAKEAWAY_ONLY
+  FIRST_ORDER
+  OTHER
+}
+
 // Customers - identified by phone number only
 model User {
   id           String   @id @default(uuid())
@@ -104,6 +114,9 @@ model Offer {
   description       String?
   terms             String?
   photoUrl          String?       @map("photo_url")
+
+  // What the offer applies to
+  appliesTo         OfferAppliesTo? @map("applies_to")
 
   // Home screen featured deals (admin-managed)
   isFeatured        Boolean @default(false) @map("is_featured")

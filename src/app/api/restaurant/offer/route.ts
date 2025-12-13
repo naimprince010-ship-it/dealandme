@@ -36,6 +36,7 @@ export async function GET() {
             description: restaurantWithOffer.offer.description,
             terms: restaurantWithOffer.offer.terms,
             photoUrl: restaurantWithOffer.offer.photoUrl,
+            appliesTo: restaurantWithOffer.offer.appliesTo,
             createdAt: restaurantWithOffer.offer.createdAt,
             updatedAt: restaurantWithOffer.offer.updatedAt,
           }
@@ -73,6 +74,7 @@ export async function PUT(request: NextRequest) {
       description,
       terms,
       photoUrl,
+      appliesTo,
     } = body;
 
     // Validate discount fields
@@ -93,6 +95,15 @@ export async function PUT(request: NextRequest) {
     if (maxDiscountAmount !== undefined && maxDiscountAmount !== null && maxDiscountAmount < 0) {
       return NextResponse.json(
         { error: "Max discount amount cannot be negative" },
+        { status: 400 }
+      );
+    }
+
+    // Validate appliesTo field
+    const validAppliesToValues = ["TOTAL_BILL", "SELECTED_ITEMS", "DINE_IN_ONLY", "TAKEAWAY_ONLY", "FIRST_ORDER", "OTHER"];
+    if (appliesTo && !validAppliesToValues.includes(appliesTo)) {
+      return NextResponse.json(
+        { error: "Invalid appliesTo value" },
         { status: 400 }
       );
     }
@@ -121,6 +132,7 @@ export async function PUT(request: NextRequest) {
       discountValue,
       maxDiscountAmount,
       title,
+      appliesTo,
     });
 
     // Use generated text or provided offerText or existing
@@ -147,6 +159,7 @@ export async function PUT(request: NextRequest) {
           description: description || null,
           terms: terms || null,
           photoUrl: photoUrl || null,
+          appliesTo: appliesTo || null,
         },
       });
 
@@ -162,6 +175,7 @@ export async function PUT(request: NextRequest) {
           description: newOffer.description,
           terms: newOffer.terms,
           photoUrl: newOffer.photoUrl,
+          appliesTo: newOffer.appliesTo,
           createdAt: newOffer.createdAt,
           updatedAt: newOffer.updatedAt,
         },
@@ -180,6 +194,7 @@ export async function PUT(request: NextRequest) {
       description?: string | null;
       terms?: string | null;
       photoUrl?: string | null;
+      appliesTo?: "TOTAL_BILL" | "SELECTED_ITEMS" | "DINE_IN_ONLY" | "TAKEAWAY_ONLY" | "FIRST_ORDER" | "OTHER" | null;
     }
 
     const updateData: OfferUpdateData = {};
@@ -199,6 +214,7 @@ export async function PUT(request: NextRequest) {
     if (description !== undefined) updateData.description = description || null;
     if (terms !== undefined) updateData.terms = terms || null;
     if (photoUrl !== undefined) updateData.photoUrl = photoUrl || null;
+    if (appliesTo !== undefined) updateData.appliesTo = appliesTo || null;
 
     const updatedOffer = await prisma.offer.update({
       where: { id: restaurantWithOffer.offer.id },
@@ -217,6 +233,7 @@ export async function PUT(request: NextRequest) {
         description: updatedOffer.description,
         terms: updatedOffer.terms,
         photoUrl: updatedOffer.photoUrl,
+        appliesTo: updatedOffer.appliesTo,
         createdAt: updatedOffer.createdAt,
         updatedAt: updatedOffer.updatedAt,
       },
