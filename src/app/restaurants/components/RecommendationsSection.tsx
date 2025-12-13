@@ -49,7 +49,7 @@ export default function RecommendationsSection({
               className="bg-white/95 rounded-2xl shadow-sm border border-gray-100 overflow-hidden w-44 flex-shrink-0"
             >
               <div className="h-24 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center relative">
-                {restaurant.offer?.photoUrl ? (
+                {restaurant.offer?.photoUrl && restaurant.offer.photoUrl.startsWith("http") ? (
                   <Image
                     src={restaurant.offer.photoUrl}
                     alt={restaurant.name}
