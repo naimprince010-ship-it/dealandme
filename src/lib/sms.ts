@@ -1,20 +1,8 @@
 /**
  * SMS Service for SSL Wireless (SMSPlus)
- * Portal: https://ismsplus.sslwireless.com/
+ * Uses application/x-www-form-urlencoded (required by SSL Wireless)
  */
 
-interface SSLWirelessResponse {
-  status?: string;
-  status_code?: number;
-  message?: string;
-  error?: string;
-  data?: unknown;
-}
-
-
-/**
- * Send SMS via SSL Wireless API
- */
 export async function sendSMS(
   phone: string,
   message: string
@@ -23,47 +11,40 @@ export async function sendSMS(
   const senderId = process.env.SSLW_SID;
 
   if (!apiToken || !senderId) {
-    console.error(
-      "SSL Wireless not configured: SSLW_API_TOKEN or SSLW_SID missing"
-    );
+    console.error("SSL Wireless env missing");
     return false;
   }
 
   const normalizedPhone = normalizePhoneNumber(phone);
 
   try {
+    const params = new URLSearchParams({
+      api_token: apiToken,
+      sid: senderId,
+      msisdn: normalizedPhone,
+      sms: message,
+      csms_id: `dealandme_${Date.now()}`,
+    });
+
     const response = await fetch(
       "https://smsplus.sslwireless.com/api/v3/send-sms",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({
-          api_token: apiToken,
-          sid: senderId,
-          msisdn: normalizedPhone, // 8801XXXXXXXXX
-          sms: message,
-          csms_id: `dealandme_${Date.now()}_${Math.random()
-            .toString(16)
-            .slice(2)}`,
-        }),
+        body: params.toString(),
       }
     );
 
-    const data: SSLWirelessResponse = await response.json().catch(() => ({}));
-const success =
-  response.ok &&
-  (
-    data?.status === "SUCCESS" ||
-    data?.status === "success" ||
-    data?.status_code === 200
-  );
+    const data = await response.json().catch(() => ({}));
 
-    if (!success) {
-      console.error("SSL Wireless SMS failed:", data);
-    }
+    console.log("SSL Wireless response:", data);
+
+    const success =
+      response.ok &&
+      (data?.status === "SUCCESS" ||
+        data?.status_code === 200);
 
     return success;
   } catch (error) {
