@@ -13,6 +13,7 @@ interface Restaurant {
   name: string;
   area: string;
   description: string | null;
+  coverImage: string | null;
   offer: {
     id: string;
     offerText: string;
@@ -270,9 +271,9 @@ export default function RestaurantDetailPage() {
 
         {/* Restaurant Hero Image */}
         <div className="relative rounded-2xl overflow-hidden mb-4 shadow-lg">
-          {restaurant.offer?.photoUrl ? (
+          {restaurant.coverImage || restaurant.offer?.photoUrl ? (
             <img
-              src={restaurant.offer.photoUrl}
+              src={restaurant.coverImage || restaurant.offer?.photoUrl || ""}
               alt={restaurant.name}
               className="w-full h-48 object-cover"
             />

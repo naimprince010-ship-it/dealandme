@@ -56,7 +56,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, area, description, isActive, newPassword } = body;
+    const { name, area, description, isActive, newPassword, coverImage } = body;
 
     // Check if restaurant exists
     const existingRestaurant = await prisma.restaurant.findUnique({
@@ -77,12 +77,14 @@ export async function PUT(
       description?: string | null;
       isActive?: boolean;
       passwordHash?: string;
+      coverImage?: string | null;
     } = {};
 
     if (name !== undefined) updateData.name = name;
     if (area !== undefined) updateData.area = area;
     if (description !== undefined) updateData.description = description || null;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (coverImage !== undefined) updateData.coverImage = coverImage || null;
 
     // Handle password reset
     if (newPassword) {
@@ -104,6 +106,7 @@ export async function PUT(
         name: restaurant.name,
         area: restaurant.area,
         description: restaurant.description,
+        coverImage: restaurant.coverImage,
         username: restaurant.username,
         isActive: restaurant.isActive,
         offer: restaurant.offer,

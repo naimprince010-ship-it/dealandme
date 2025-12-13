@@ -56,6 +56,7 @@ model Restaurant {
   area            String
   cuisine         String?
   description     String?
+  coverImage      String?  @map("cover_image")
   username        String   @unique
   passwordHash    String   @map("password_hash")
   isActive        Boolean  @default(true) @map("is_active")
