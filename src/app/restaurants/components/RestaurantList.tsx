@@ -28,6 +28,28 @@ interface RestaurantListProps {
   favorites: Set<string>;
   selectedArea: string;
   onToggleFavorite: (restaurantId: string) => void;
+  searchQuery?: string;
+}
+
+// Helper function to highlight matching text
+function HighlightText({ text, query }: { text: string; query?: string }) {
+  if (!query || !query.trim()) {
+    return <>{text}</>;
+  }
+
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  
+  return (
+    <>
+      {parts.map((part, index) => 
+        part.toLowerCase() === query.toLowerCase() ? (
+          <span key={index} className="bg-yellow-200 text-yellow-900 rounded px-0.5">{part}</span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
+  );
 }
 
 export default function RestaurantList({
@@ -35,6 +57,7 @@ export default function RestaurantList({
   favorites,
   selectedArea,
   onToggleFavorite,
+  searchQuery,
 }: RestaurantListProps) {
   const { language } = useLanguage();
 
@@ -123,7 +146,7 @@ export default function RestaurantList({
                           className="font-bold text-gray-800 text-base leading-tight"
                           style={{ fontFamily: "var(--font-bangla), sans-serif" }}
                         >
-                          {restaurant.name}
+                          <HighlightText text={restaurant.name} query={searchQuery} />
                         </h3>
                         <button
                           onClick={(e) => {
