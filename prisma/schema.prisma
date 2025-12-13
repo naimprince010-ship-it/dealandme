@@ -71,12 +71,13 @@ model Restaurant {
   latitude           Float?
   longitude          Float?
 
-  offer        Offer?
-  coupons      Coupon[]
-  favorites    Favorite[]
-  commissions  Commission[]
-  visitHistory VisitHistory[]
-  invoices     Invoice[]
+  offer          Offer?
+  coupons        Coupon[]
+  favorites      Favorite[]
+  commissions    Commission[]
+  visitHistory   VisitHistory[]
+  invoices       Invoice[]
+  homeCategories HomeCategoryRestaurant[]
 
   @@index([area, isActive])
   @@index([offPeakBoost, isActive])
@@ -322,6 +323,24 @@ model HomeCategory {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  restaurants HomeCategoryRestaurant[]
+
   @@index([isActive, sortOrder])
   @@map("home_categories")
+}
+
+// Join table: which restaurants appear in which category
+model HomeCategoryRestaurant {
+  id           String   @id @default(uuid())
+  categoryId   String   @map("category_id")
+  restaurantId String   @map("restaurant_id")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  category   HomeCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  restaurant Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, restaurantId])
+  @@index([categoryId, sortOrder])
+  @@map("home_category_restaurants")
 }
