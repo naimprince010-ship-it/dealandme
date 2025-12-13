@@ -63,11 +63,6 @@ interface GroupedRestaurants {
   [area: string]: Restaurant[];
 }
 
-interface Area {
-  id: string;
-  nameEn: string;
-  nameBn: string;
-}
 
 export default function RestaurantsPage() {
   const router = useRouter();
@@ -76,11 +71,10 @@ export default function RestaurantsPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedArea, setSelectedArea] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [areas, setAreas] = useState<Area[]>([]);
+    const [error, setError] = useState("");
+    const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
+    const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+    const [showRecommendations, setShowRecommendations] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,8 +104,6 @@ export default function RestaurantsPage() {
         if (data.recommendations?.recommendations?.length > 0 && data.recommendations?.preferences?.totalVisits > 0) {
           setShowRecommendations(true);
         }
-
-        setAreas(data.areas?.areas || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
@@ -255,7 +247,7 @@ export default function RestaurantsPage() {
         </div>
 
         <AreaFilterChips
-          areas={areas}
+          restaurantAreas={restaurantAreas}
           selectedArea={selectedArea}
           onSelectArea={setSelectedArea}
         />

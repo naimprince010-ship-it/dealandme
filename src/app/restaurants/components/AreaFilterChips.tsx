@@ -2,20 +2,15 @@
 
 import { useLanguage } from "@/lib/LanguageContext";
 
-interface Area {
-  id: string;
-  nameEn: string;
-  nameBn: string;
-}
-
 interface AreaFilterChipsProps {
-  areas: Area[];
+  // Array of actual restaurant area names (from groupedRestaurants keys)
+  restaurantAreas: string[];
   selectedArea: string;
   onSelectArea: (area: string) => void;
 }
 
 export default function AreaFilterChips({
-  areas,
+  restaurantAreas,
   selectedArea,
   onSelectArea,
 }: AreaFilterChipsProps) {
@@ -35,18 +30,18 @@ export default function AreaFilterChips({
         >
           {language === "bn" ? "সব এলাকা" : "All Areas"}
         </button>
-        {areas.map((area) => (
+        {restaurantAreas.map((area) => (
           <button
-            key={area.id}
-            onClick={() => onSelectArea(area.nameEn)}
+            key={area}
+            onClick={() => onSelectArea(area)}
             className={`px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-              selectedArea === area.nameEn
+              selectedArea === area
                 ? "bg-emerald-500 text-white shadow-sm"
                 : "bg-white/80 text-gray-600 hover:bg-white"
             }`}
             style={{ fontFamily: "var(--font-bangla), sans-serif" }}
           >
-            {language === "bn" ? area.nameBn : area.nameEn}
+            {area}
           </button>
         ))}
       </div>
