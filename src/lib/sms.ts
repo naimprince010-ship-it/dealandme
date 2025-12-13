@@ -8,8 +8,9 @@ interface SSLWirelessResponse {
   status_code?: number;
   message?: string;
   error?: string;
-  [key: string]: any;
+  data?: unknown;
 }
+
 
 /**
  * Send SMS via SSL Wireless API
