@@ -19,6 +19,13 @@ export default function NewRestaurant() {
   const [success, setSuccess] = useState("");
   const [areas, setAreas] = useState<Area[]>([]);
 
+  // Calculate default trial end date (3 months from now)
+  const getDefaultTrialEndDate = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + 3);
+    return date.toISOString().split("T")[0];
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     area: "",
@@ -26,6 +33,8 @@ export default function NewRestaurant() {
     username: "",
     password: "",
     coverImage: "",
+    commissionRate: 10,
+    trialEndDate: getDefaultTrialEndDate(),
   });
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -255,6 +264,71 @@ export default function NewRestaurant() {
                     )}
                   </div>
                 </label>
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Commission & Trial Settings */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-900 mb-3">Commission & Trial Settings</h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="commissionRate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Commission Rate (৳ per coupon)
+                  </label>
+                  <input
+                    type="number"
+                    id="commissionRate"
+                    min="0"
+                    step="1"
+                    value={formData.commissionRate}
+                    onChange={(e) => setFormData({ ...formData, commissionRate: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Amount charged per redeemed coupon (default: ৳10)
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="trialEndDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Trial Period End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="trialEndDate"
+                    value={formData.trialEndDate}
+                    onChange={(e) => setFormData({ ...formData, trialEndDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    No commission charged until this date. Default: 3 months from today.
+                  </p>
+                  {formData.trialEndDate && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">
+                      Trial active until {new Date(formData.trialEndDate).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, trialEndDate: getDefaultTrialEndDate() })}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Reset to 3 months
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, trialEndDate: "" })}
+                    className="text-sm text-red-600 hover:text-red-800 underline"
+                  >
+                    No trial (charge immediately)
+                  </button>
+                </div>
               </div>
             </div>
 

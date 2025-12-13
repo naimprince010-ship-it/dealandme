@@ -9,6 +9,8 @@ interface RestaurantCommission {
   restaurantName: string;
   area: string;
   commissionRate: number;
+  isInTrial: boolean;
+  trialEndDate: string | null;
   totalRedeemed: number;
   totalCommission: number;
   paidCoupons: number;
@@ -199,9 +201,14 @@ export default function CommissionsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {data.restaurants.map((restaurant) => (
-                    <tr key={restaurant.restaurantId} className="hover:bg-gray-50">
+                    <tr key={restaurant.restaurantId} className={`hover:bg-gray-50 ${restaurant.isInTrial ? "bg-blue-50" : ""}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{restaurant.restaurantName}</div>
+                        {restaurant.isInTrial && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                            Trial until {new Date(restaurant.trialEndDate!).toLocaleDateString()}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                         {restaurant.area}
@@ -210,20 +217,32 @@ export default function CommissionsPage() {
                         <span className="text-indigo-600 font-semibold">{restaurant.totalRedeemed}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                        ৳{restaurant.commissionRate}
+                        {restaurant.isInTrial ? (
+                          <span className="line-through">৳{restaurant.commissionRate}</span>
+                        ) : (
+                          <span>৳{restaurant.commissionRate}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="font-semibold text-green-600">৳{restaurant.totalCommission}</span>
+                        {restaurant.isInTrial ? (
+                          <span className="font-semibold text-blue-600">৳0 (Trial)</span>
+                        ) : (
+                          <span className="font-semibold text-green-600">৳{restaurant.totalCommission}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {restaurant.unpaidAmount > 0 ? (
+                        {restaurant.isInTrial ? (
+                          <span className="text-blue-600">Trial</span>
+                        ) : restaurant.unpaidAmount > 0 ? (
                           <span className="text-red-600 font-semibold">৳{restaurant.unpaidAmount}</span>
                         ) : (
                           <span className="text-green-600">Paid</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {restaurant.unpaidAmount > 0 ? (
+                        {restaurant.isInTrial ? (
+                          <span className="text-blue-500 text-sm">Free</span>
+                        ) : restaurant.unpaidAmount > 0 ? (
                           <button
                             onClick={() => markAsPaid(restaurant.restaurantId)}
                             disabled={marking === restaurant.restaurantId}

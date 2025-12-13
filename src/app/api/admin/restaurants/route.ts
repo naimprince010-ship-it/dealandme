@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, area, description, username, password, coverImage } = await request.json();
+    const { name, area, description, username, password, coverImage, commissionRate, trialEndDate } = await request.json();
 
     // Validate required fields
     if (!name || !area || !username || !password) {
@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
         username,
         passwordHash,
         isActive: true,
+        commissionRate: commissionRate ?? 10,
+        trialEndDate: trialEndDate ? new Date(trialEndDate) : null,
       },
     });
 
