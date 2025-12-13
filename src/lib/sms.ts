@@ -26,6 +26,7 @@ export async function sendSMS(
   const csms_id = Math.random().toString(36).substring(2, 18);
 
   try {
+    // SSL Wireless API v3.0.0 uses JSON format
     const response = await fetch(
       "https://smsplus.sslwireless.com/api/v3/send-sms",
       {
@@ -44,14 +45,19 @@ export async function sendSMS(
       }
     );
 
+    console.log("SSL Wireless HTTP status:", response.status);
+    
     const data: SSLWirelessResponse = await response.json();
+    console.log("SSL Wireless response:", JSON.stringify(data));
 
-    console.log("SSL Wireless response:", data);
-
-    return (
-      data?.status === "SUCCESS" &&
-      data?.status_code === 200
-    );
+    // Check for success - SSL Wireless returns status "SUCCESS" with status_code 200
+    if (data?.status === "SUCCESS" && data?.status_code === 200) {
+      console.log(`SMS sent successfully to ${normalizedPhone}`);
+      return true;
+    }
+    
+    console.error("SSL Wireless SMS failed:", JSON.stringify(data));
+    return false;
   } catch (error) {
     console.error("SSL Wireless SMS error:", error);
     return false;
