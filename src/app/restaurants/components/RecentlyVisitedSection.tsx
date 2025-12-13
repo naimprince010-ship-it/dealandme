@@ -66,6 +66,11 @@ export default function RecentlyVisitedSection({
                   {restaurant.name}
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">{restaurant.area}</p>
+                {restaurant.offer && restaurant.offer.isActive && (
+                  <div className="mt-1.5 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg text-xs truncate">
+                    🎁 {restaurant.offer.offerText}
+                  </div>
+                )}
               </div>
             </Link>
           ))}
