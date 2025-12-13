@@ -106,6 +106,63 @@ export async function getCustomer() {
   return user;
 }
 
+// Optimized: Get customer with session in a single query
+// This reduces 2 DB round-trips to 1 for better performance
+export async function getCustomerFast() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  // Single query: get session and user together
+  const result = await prisma.$queryRaw<Array<{
+    session_id: string;
+    user_type: string;
+    user_id: string;
+    expires_at: Date;
+    id: string;
+    phone: string;
+    referral_code: string | null;
+    referred_by: string | null;
+    photo_url: string | null;
+    created_at: Date;
+  }>>`
+    SELECT 
+      s.id as session_id,
+      s.user_type,
+      s.user_id,
+      s.expires_at,
+      u.id,
+      u.phone,
+      u.referral_code,
+      u.referred_by,
+      u.photo_url,
+      u.created_at
+    FROM sessions s
+    INNER JOIN users u ON s.user_id = u.id
+    WHERE s.token = ${token}
+      AND s.user_type = 'CUSTOMER'
+      AND s.expires_at > NOW()
+    LIMIT 1
+  `;
+
+  if (!result || result.length === 0) {
+    return null;
+  }
+
+  const row = result[0];
+  return {
+    id: row.id,
+    phone: row.phone,
+    referralCode: row.referral_code,
+    referredBy: row.referred_by,
+    photoUrl: row.photo_url,
+    createdAt: row.created_at,
+  };
+}
+
 export async function getRestaurant() {
   const session = await getSession();
   if (!session || session.userType !== "RESTAURANT") {

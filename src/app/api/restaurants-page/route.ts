@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCustomer } from "@/lib/auth";
+import { getCustomerFast } from "@/lib/auth";
+import { unstable_cache } from "next/cache";
 
 function isOffPeakHours(): boolean {
   const now = new Date();
@@ -8,9 +9,31 @@ function isOffPeakHours(): boolean {
   return bdHour >= 15 && bdHour < 18;
 }
 
+// Cache areas for 5 minutes - they rarely change
+const getCachedAreas = unstable_cache(
+  async () => {
+    return prisma.area.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        nameEn: true,
+        nameBn: true,
+      },
+    });
+  },
+  ["areas-list"],
+  { revalidate: 300 } // 5 minutes
+);
+
 export async function GET() {
+  const apiStart = Date.now();
+  
   try {
-    const customer = await getCustomer();
+    const t0 = Date.now();
+    const customer = await getCustomerFast();
+    const authTime = Date.now() - t0;
+    
     if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -20,6 +43,9 @@ export async function GET() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const offPeak = isOffPeakHours();
 
+    // Run all queries in PARALLEL for maximum performance
+    // Areas are cached separately (5 min TTL) since they rarely change
+    const queryStart = Date.now();
     const [
       allRestaurants,
       favorites,
@@ -96,16 +122,12 @@ export async function GET() {
           },
         },
       }),
-      prisma.area.findMany({
-        where: { isActive: true },
-        orderBy: { sortOrder: "asc" },
-        select: {
-          id: true,
-          nameEn: true,
-          nameBn: true,
-        },
-      }),
+      getCachedAreas(), // Use cached areas instead of direct DB query
     ]);
+    const parallelQueryTime = Date.now() - queryStart;
+
+    // Log timing for monitoring
+    console.log(`[restaurants-page] Auth: ${authTime}ms, Queries (parallel): ${parallelQueryTime}ms, Total: ${Date.now() - apiStart}ms`);
 
     const restaurants = allRestaurants
       .filter((r) => r.offer && r.offer.isActive)
