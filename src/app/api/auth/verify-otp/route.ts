@@ -6,6 +6,18 @@ import { normalizePhoneNumber, isSMSConfigured } from "@/lib/sms";
 const MOCK_OTP = "123456";
 const MAX_VERIFY_ATTEMPTS = 3;
 
+// Helper to detect preview environment - allows mock OTP in preview deployments
+function isPreviewEnvironment(req: NextRequest): boolean {
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv === "preview") return true;
+  
+  // Also check host for preview URLs
+  const host = req.headers.get("host") || "";
+  if (host.includes("-git-") && host.includes(".vercel.app")) return true;
+  
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { phone, otp } = await request.json();
@@ -26,8 +38,12 @@ export async function POST(request: NextRequest) {
 
     const normalizedPhone = normalizePhoneNumber(phone);
 
-    // If SMS is configured, validate against stored OTP
-    if (isSMSConfigured()) {
+    // Check if we should require real OTP (production only, not preview)
+    const isPreview = isPreviewEnvironment(request);
+    const requireRealOtp = isSMSConfigured() && !isPreview;
+
+    // If SMS is configured and not in preview, validate against stored OTP
+    if (requireRealOtp) {
       // Find the latest valid OTP for this phone
       const storedOtp = await prisma.otpCode.findFirst({
         where: {
