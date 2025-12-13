@@ -53,12 +53,13 @@ export async function sendSMS(
     );
 
     const data: SSLWirelessResponse = await response.json().catch(() => ({}));
-
-    const success =
-      response.ok &&
-      (data?.status?.toLowerCase?.().includes("success") ||
-        data?.message?.toLowerCase?.().includes("success") ||
-        data?.status_code === 200);
+const success =
+  response.ok &&
+  (
+    data?.status === "SUCCESS" ||
+    data?.status === "success" ||
+    data?.status_code === 200
+  );
 
     if (!success) {
       console.error("SSL Wireless SMS failed:", data);
