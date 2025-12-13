@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import BottomNav from "@/components/BottomNav";
@@ -8,6 +8,23 @@ import { useLanguage } from "@/lib/LanguageContext";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import { RestaurantListSkeleton, Skeleton } from "@/components/Skeleton";
 import AreaFilterChips from "./components/AreaFilterChips";
+
+// Custom hook for debounced value
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 const RecommendationsSection = dynamic(
   () => import("./components/RecommendationsSection"),
@@ -71,10 +88,51 @@ export default function RestaurantsPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedArea, setSelectedArea] = useState("all");
   const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
-    const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-    const [showRecommendations, setShowRecommendations] = useState(false);
+  const [error, setError] = useState("");
+  const [recentlyVisited, setRecentlyVisited] = useState<RecentlyVisited[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  
+  // Search state - instant client-side filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const debouncedSearch = useDebounce(searchQuery, 150); // 150ms debounce for smooth UX
+
+  // Memoized filtered restaurants for instant search
+  const filteredRestaurants = useMemo(() => {
+    if (!debouncedSearch.trim()) {
+      return groupedRestaurants;
+    }
+
+    const searchLower = debouncedSearch.toLowerCase().trim();
+    const filtered: GroupedRestaurants = {};
+
+    Object.entries(groupedRestaurants).forEach(([area, restaurants]) => {
+      const matchingRestaurants = restaurants.filter((restaurant) => {
+        // Search in restaurant name
+        if (restaurant.name.toLowerCase().includes(searchLower)) return true;
+        // Search in area
+        if (restaurant.area.toLowerCase().includes(searchLower)) return true;
+        // Search in cuisine
+        if (restaurant.cuisine?.toLowerCase().includes(searchLower)) return true;
+        // Search in offer text
+        if (restaurant.offer?.offerText.toLowerCase().includes(searchLower)) return true;
+        return false;
+      });
+
+      if (matchingRestaurants.length > 0) {
+        filtered[area] = matchingRestaurants;
+      }
+    });
+
+    return filtered;
+  }, [groupedRestaurants, debouncedSearch]);
+
+  // Clear search when area changes
+  const handleAreaChange = useCallback((area: string) => {
+    setSelectedArea(area);
+    // Don't clear search - let user search within area
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -232,10 +290,10 @@ export default function RestaurantsPage() {
       <LoginBackgroundPattern />
       
       <main className="relative z-10 max-w-lg mx-auto px-4 pt-6">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-4">
           <button
             onClick={() => router.back()}
-            className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-sm"
+            className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-sm flex-shrink-0"
           >
             <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -246,29 +304,72 @@ export default function RestaurantsPage() {
           </h1>
         </div>
 
+        {/* Super Fast Search Input */}
+        <div className="relative mb-4">
+          <div className={`relative flex items-center bg-white/95 rounded-2xl shadow-sm border-2 transition-all duration-200 ${isSearchFocused ? "border-emerald-500 shadow-md" : "border-gray-100"}`}>
+            <div className="pl-4 pr-2">
+              <svg className={`w-5 h-5 transition-colors ${isSearchFocused ? "text-emerald-500" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              placeholder={language === "bn" ? "রেস্টুরেন্ট বা অফার খুঁজুন..." : "Search restaurants or offers..."}
+              className="flex-1 py-3 pr-2 bg-transparent outline-none text-gray-800 placeholder-gray-400"
+              style={{ fontFamily: "var(--font-bangla), sans-serif" }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="pr-4 pl-2 py-3 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {/* Search result count indicator */}
+          {searchQuery && (
+            <div className="absolute -bottom-5 left-4 text-xs text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {Object.values(filteredRestaurants).flat().length} {language === "bn" ? "টি রেস্টুরেন্ট পাওয়া গেছে" : "restaurants found"}
+            </div>
+          )}
+        </div>
+
         <AreaFilterChips
           restaurantAreas={restaurantAreas}
           selectedArea={selectedArea}
-          onSelectArea={setSelectedArea}
+          onSelectArea={handleAreaChange}
         />
 
-        <Suspense fallback={null}>
-          <RecommendationsSection
-            recommendations={recommendations}
-            showRecommendations={showRecommendations}
-          />
-        </Suspense>
+        {/* Hide recommendations and recently visited when searching */}
+        {!searchQuery && (
+          <>
+            <Suspense fallback={null}>
+              <RecommendationsSection
+                recommendations={recommendations}
+                showRecommendations={showRecommendations}
+              />
+            </Suspense>
 
-        <Suspense fallback={null}>
-          <RecentlyVisitedSection recentlyVisited={recentlyVisited} />
-        </Suspense>
+            <Suspense fallback={null}>
+              <RecentlyVisitedSection recentlyVisited={recentlyVisited} />
+            </Suspense>
+          </>
+        )}
 
         <Suspense fallback={<RestaurantListSkeleton />}>
           <RestaurantList
-            groupedRestaurants={groupedRestaurants}
+            groupedRestaurants={filteredRestaurants}
             favorites={favorites}
             selectedArea={selectedArea}
             onToggleFavorite={toggleFavorite}
+            searchQuery={debouncedSearch}
           />
         </Suspense>
       </main>
