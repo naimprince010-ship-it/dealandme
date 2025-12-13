@@ -154,14 +154,6 @@ export default function RestaurantLogin() {
               </button>
             </form>
 
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <p className="text-center text-xs text-gray-500">
-                {language === "bn" ? "টেস্ট ক্রেডেনশিয়াল" : "Test credentials"}
-              </p>
-              <p className="text-center text-sm text-gray-600 font-mono mt-1">
-                spicegarden / restaurant123
-              </p>
-            </div>
           </div>
 
           {/* Back to Home Link */}
