@@ -65,13 +65,13 @@ export async function sendSMS(
 }
 
 /**
- * OTP sender
+ * OTP sender - BTRC compliant format: (Brand Name) Message
  */
 export async function sendOtpSMS(
   phone: string,
   otp: string
 ): Promise<boolean> {
-  const message = `Your Dealandme OTP is ${otp}. Valid for 5 minutes. Do not share with anyone.`;
+  const message = `(Dealandme) Your OTP is ${otp}. Valid for 5 minutes. Do not share with anyone.`;
   return sendSMS(phone, message);
 }
 
