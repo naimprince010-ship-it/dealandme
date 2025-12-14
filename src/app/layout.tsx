@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import { LanguageProvider } from "@/lib/LanguageContext";
 
 const inter = Inter({ 
@@ -44,12 +45,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn">
-      <body className={`${inter.className} ${hindSiliguri.variable} antialiased bg-gray-50 min-h-screen`}>
-        <ServiceWorkerRegistration />
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
-      </body>
+            <body className={`${inter.className} ${hindSiliguri.variable} antialiased bg-gray-50 min-h-screen`}>
+              <ServiceWorkerRegistration />
+              <AnalyticsTracker />
+              <LanguageProvider>
+                {children}
+              </LanguageProvider>
+            </body>
     </html>
   );
 }

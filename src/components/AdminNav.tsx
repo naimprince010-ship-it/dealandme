@@ -100,17 +100,27 @@ export default function AdminNav() {
             >
               Commissions
             </Link>
-            <Link
-              href="/admin/invoices"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive("/admin/invoices")
-                  ? "bg-purple-100 text-purple-700"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Invoices
-            </Link>
-            <button
+                        <Link
+                          href="/admin/invoices"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive("/admin/invoices")
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          Invoices
+                        </Link>
+                        <Link
+                          href="/admin/analytics"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive("/admin/analytics")
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          Analytics
+                        </Link>
+                        <button
               onClick={handleLogout}
               disabled={loggingOut}
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"

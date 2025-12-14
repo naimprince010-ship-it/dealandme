@@ -43,14 +43,15 @@ enum OfferAppliesTo {
 
 // Customers - identified by phone number only
 model User {
-  id           String   @id @default(uuid())
-  phone        String   @unique
+  id           String    @id @default(uuid())
+  phone        String    @unique
   name         String?
   email        String?
-  referralCode String?  @unique @map("referral_code")
-  referredBy   String?  @map("referred_by")
-  photoUrl     String?  @map("photo_url")
-  createdAt    DateTime @default(now()) @map("created_at")
+  referralCode String?   @unique @map("referral_code")
+  referredBy   String?   @map("referred_by")
+  photoUrl     String?   @map("photo_url")
+  lastActiveAt DateTime? @map("last_active_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
   coupons           Coupon[]
   favorites         Favorite[]
@@ -59,26 +60,28 @@ model User {
   pushSubscriptions PushSubscription[]
   userBadges        UserBadge[]
 
+  @@index([lastActiveAt])
   @@map("users")
 }
 
 // Restaurant partners
 model Restaurant {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   name            String
   area            String
   cuisine         String?
   description     String?
-  coverImage      String?  @map("cover_image")
-  username        String   @unique
-  passwordHash    String   @map("password_hash")
-  isActive        Boolean  @default(true) @map("is_active")
-  offPeakBoost    Boolean  @default(false) @map("off_peak_boost")
-  commissionRate  Float    @default(10.0) @map("commission_rate")
-  paymentOverdue  Boolean  @default(false) @map("payment_overdue")
+  coverImage      String?   @map("cover_image")
+  username        String    @unique
+  passwordHash    String    @map("password_hash")
+  isActive        Boolean   @default(true) @map("is_active")
+  offPeakBoost    Boolean   @default(false) @map("off_peak_boost")
+  commissionRate  Float     @default(10.0) @map("commission_rate")
+  paymentOverdue  Boolean   @default(false) @map("payment_overdue")
   trialEndDate    DateTime? @map("trial_end_date")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  lastActiveAt    DateTime? @map("last_active_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Home screen display flags (admin-managed)
   isPopular          Boolean @default(false) @map("is_popular")
@@ -98,6 +101,7 @@ model Restaurant {
   @@index([offPeakBoost, isActive])
   @@index([paymentOverdue])
   @@index([isPopular, popularSortOrder])
+  @@index([lastActiveAt])
   @@map("restaurants")
 }
 
@@ -405,4 +409,25 @@ model UserBadge {
   @@unique([userId, badgeId])
   @@index([userId])
   @@map("user_badges")
+}
+
+// App install type enum
+enum AppType {
+  CUSTOMER
+  RESTAURANT
+}
+
+// PWA app install tracking
+model AppInstall {
+  id         String   @id @default(uuid())
+  installId  String   @unique @map("install_id")
+  appType    AppType  @map("app_type")
+  userId     String?  @map("user_id")
+  userAgent  String?  @map("user_agent")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([appType])
+  @@index([lastSeenAt])
+  @@map("app_installs")
 }
