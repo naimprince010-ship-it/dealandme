@@ -24,6 +24,8 @@ export async function GET() {
           user = {
             id: customer.id,
             phone: customer.phone,
+            name: customer.name,
+            email: customer.email,
             photoUrl: customer.photoUrl,
             type: "CUSTOMER",
           };

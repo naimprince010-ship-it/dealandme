@@ -11,6 +11,10 @@ interface Badge {
   name: string;
   namebn: string;
   icon: string;
+  threshold: number;
+  criteriaType: string;
+  isUnlocked: boolean;
+  progress: number;
 }
 
 interface UserStats {
@@ -22,16 +26,6 @@ interface UserStats {
   badges: Badge[];
   phone?: string;
 }
-
-// All possible badges with their unlock criteria
-const ALL_BADGES = [
-  { id: "first_coupon", name: "First Coupon", namebn: "প্রথম কুপন", icon: "🏅", unlockAt: { couponsUsed: 1 } },
-  { id: "coupon_lover", name: "Coupon Lover", namebn: "কুপন প্রেমী", icon: "👍", unlockAt: { couponsUsed: 5 } },
-  { id: "deal_hunter", name: "Deal Hunter", namebn: "ডিল হান্টার", icon: "🛡️", unlockAt: { couponsUsed: 10 } },
-  { id: "explorer", name: "Explorer", namebn: "এক্সপ্লোরার", icon: "🔒", unlockAt: { restaurantsTried: 5 } },
-  { id: "foodie", name: "Foodie", namebn: "ফুডি", icon: "🔒", unlockAt: { restaurantsTried: 10 } },
-  { id: "referral_star", name: "Referral Star", namebn: "রেফারেল স্টার", icon: "🔒", unlockAt: { referrals: 3 } },
-];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -46,6 +40,12 @@ export default function ProfilePage() {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -60,6 +60,8 @@ export default function ProfilePage() {
 
         setUserPhone(authData.user?.phone || "");
         setProfileImageUrl(authData.user?.photoUrl || null);
+        setUserName(authData.user?.name || null);
+        setUserEmail(authData.user?.email || null);
 
         const [statsRes, pushRes] = await Promise.all([
           fetch("/api/user/stats"),
@@ -67,8 +69,11 @@ export default function ProfilePage() {
         ]);
 
         if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
+          const data = await statsRes.json();
+          setStats({
+            ...data.stats,
+            badges: data.badges || [],
+          });
         }
 
         if (pushRes.ok) {
@@ -234,28 +239,40 @@ export default function ProfilePage() {
     }
   };
 
-  // Get unlocked badges based on stats
-  const getUnlockedBadgeIds = () => {
-    if (!stats) return new Set<string>();
-    const unlocked = new Set<string>();
-    
-    ALL_BADGES.forEach(badge => {
-      const criteria = badge.unlockAt;
-      if (criteria.couponsUsed && stats.couponsUsed >= criteria.couponsUsed) {
-        unlocked.add(badge.id);
-      }
-      if (criteria.restaurantsTried && stats.restaurantsTried >= criteria.restaurantsTried) {
-        unlocked.add(badge.id);
-      }
-      if (criteria.referrals && stats.referralsCount >= criteria.referrals) {
-        unlocked.add(badge.id);
-      }
-    });
-    
-    return unlocked;
+  const handleOpenEditModal = () => {
+    setEditName(userName || "");
+    setEditEmail(userEmail || "");
+    setShowEditModal(true);
   };
 
-  const unlockedBadgeIds = getUnlockedBadgeIds();
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName || null,
+          email: editEmail || null,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUserName(data.user.name);
+        setUserEmail(data.user.email);
+        setShowEditModal(false);
+      } else {
+        const error = await res.json();
+        alert(error.error || (language === "bn" ? "সেভ ব্যর্থ হয়েছে" : "Save failed"));
+      }
+    } catch (error) {
+      console.error("Save profile error:", error);
+      alert(language === "bn" ? "সেভ ব্যর্থ হয়েছে" : "Save failed");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -319,11 +336,26 @@ export default function ProfilePage() {
           
           {/* User Name and Phone */}
           <h1 className="mt-4 text-xl font-bold text-gray-800">
-            {language === "bn" ? `হ্যালো, ...${phoneLastFour}!` : `Hello, ...${phoneLastFour}!`}
+            {userName 
+              ? (language === "bn" ? `হ্যালো, ${userName}!` : `Hello, ${userName}!`)
+              : (language === "bn" ? `হ্যালো, ...${phoneLastFour}!` : `Hello, ...${phoneLastFour}!`)
+            }
           </h1>
           <p className="text-gray-600 text-sm">
-            +01X:XXXXXXXXXX
+            {userPhone ? `+88${userPhone.slice(0, 3)}****${userPhone.slice(-4)}` : "+01X:XXXXXXXXXX"}
           </p>
+          {userEmail && (
+            <p className="text-gray-500 text-xs mt-1">{userEmail}</p>
+          )}
+          <button
+            onClick={handleOpenEditModal}
+            className="mt-2 px-4 py-1.5 bg-white/80 rounded-full text-sm text-gray-700 shadow-sm flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            {language === "bn" ? "প্রোফাইল এডিট" : "Edit Profile"}
+          </button>
         </div>
 
         {/* Stats Grid - 2x2 */}
@@ -388,27 +420,37 @@ export default function ProfilePage() {
           {language === "bn" ? "আপনার ব্যাজ" : "Your Badges"}
         </h2>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {ALL_BADGES.map((badge) => {
-            const isUnlocked = unlockedBadgeIds.has(badge.id);
-            return (
+          {stats?.badges && stats.badges.length > 0 ? (
+            stats.badges.map((badge) => (
               <div
                 key={badge.id}
-                className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center ${
-                  isUnlocked 
-                    ? "bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300" 
-                    : "bg-gray-200"
-                }`}
+                className="flex-shrink-0 flex flex-col items-center"
               >
-                {isUnlocked ? (
-                  <span className="text-3xl">{badge.icon}</span>
-                ) : (
-                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                  </svg>
-                )}
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    badge.isUnlocked 
+                      ? "bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300" 
+                      : "bg-gray-200"
+                  }`}
+                >
+                  {badge.isUnlocked ? (
+                    <span className="text-3xl">{badge.icon}</span>
+                  ) : (
+                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600 mt-1 text-center max-w-16 truncate">
+                  {language === "bn" ? badge.namebn : badge.name}
+                </span>
               </div>
-            );
-          })}
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">
+              {language === "bn" ? "ব্যাজ পেতে কুপন ব্যবহার করুন!" : "Use coupons to earn badges!"}
+            </p>
+          )}
         </div>
       </div>
 
@@ -513,6 +555,64 @@ export default function ProfilePage() {
           {language === "bn" ? "লগআউট" : "Logout"}
         </button>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              {language === "bn" ? "প্রোফাইল এডিট করুন" : "Edit Profile"}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === "bn" ? "নাম" : "Name"}
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder={language === "bn" ? "আপনার নাম লিখুন" : "Enter your name"}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === "bn" ? "ইমেইল" : "Email"}
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder={language === "bn" ? "আপনার ইমেইল লিখুন" : "Enter your email"}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium"
+              >
+                {language === "bn" ? "বাতিল" : "Cancel"}
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="flex-1 py-2 bg-emerald-500 text-white rounded-lg font-medium disabled:opacity-50"
+              >
+                {savingProfile 
+                  ? (language === "bn" ? "সেভ হচ্ছে..." : "Saving...")
+                  : (language === "bn" ? "সেভ করুন" : "Save")
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <BottomNav />
