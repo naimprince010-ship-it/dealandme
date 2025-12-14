@@ -1,6 +1,12 @@
 /**
- * SSL Wireless Push SMS (API v3.0.0) – Document compliant
+ * SMS Provider Library - Supports multiple providers
+ * - SSL Wireless (Bangladesh local provider)
+ * - Twilio (International provider)
  */
+
+import { prisma } from "@/lib/prisma";
+
+export type SMSProvider = "ssl" | "twilio";
 
 interface SSLWirelessResponse {
   status?: "SUCCESS" | "FAILED";
@@ -8,10 +14,26 @@ interface SSLWirelessResponse {
   error_message?: string;
 }
 
-export async function sendSMS(
-  phone: string,
-  message: string
-): Promise<boolean> {
+interface TwilioResponse {
+  sid?: string;
+  status?: string;
+  error_code?: number;
+  error_message?: string;
+}
+
+export async function getSMSProvider(): Promise<SMSProvider> {
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: "sms_provider" },
+    });
+    if (setting?.value === "twilio") return "twilio";
+    return "ssl";
+  } catch {
+    return "ssl";
+  }
+}
+
+async function sendSMSViaSSL(phone: string, message: string): Promise<boolean> {
   const apiToken = process.env.SSLW_API_TOKEN;
   const senderId = process.env.SSLW_SID;
 
@@ -21,12 +43,9 @@ export async function sendSMS(
   }
 
   const normalizedPhone = normalizePhoneNumber(phone);
-
-  // csms_id must be <= 20 chars and unique per day
   const csms_id = Math.random().toString(36).substring(2, 18);
 
   try {
-    // SSL Wireless API v3.0.0 uses JSON format
     const response = await fetch(
       "https://smsplus.sslwireless.com/api/v3/send-sms",
       {
@@ -46,22 +65,80 @@ export async function sendSMS(
     );
 
     console.log("SSL Wireless HTTP status:", response.status);
-    
     const data: SSLWirelessResponse = await response.json();
     console.log("SSL Wireless response:", JSON.stringify(data));
 
-    // Check for success - SSL Wireless returns status "SUCCESS" with status_code 200
     if (data?.status === "SUCCESS" && data?.status_code === 200) {
-      console.log(`SMS sent successfully to ${normalizedPhone}`);
+      console.log(`SMS sent successfully via SSL to ${normalizedPhone}`);
       return true;
     }
-    
+
     console.error("SSL Wireless SMS failed:", JSON.stringify(data));
     return false;
   } catch (error) {
     console.error("SSL Wireless SMS error:", error);
     return false;
   }
+}
+
+async function sendSMSViaTwilio(phone: string, message: string): Promise<boolean> {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+  if (!accountSid || !authToken || !fromNumber) {
+    console.error("Twilio env missing");
+    return false;
+  }
+
+  const normalizedPhone = normalizePhoneNumber(phone);
+  const toNumber = `+${normalizedPhone}`;
+
+  try {
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          To: toNumber,
+          From: fromNumber,
+          Body: message,
+        }),
+      }
+    );
+
+    console.log("Twilio HTTP status:", response.status);
+    const data: TwilioResponse = await response.json();
+    console.log("Twilio response:", JSON.stringify(data));
+
+    if (response.ok && data?.sid) {
+      console.log(`SMS sent successfully via Twilio to ${toNumber}`);
+      return true;
+    }
+
+    console.error("Twilio SMS failed:", JSON.stringify(data));
+    return false;
+  } catch (error) {
+    console.error("Twilio SMS error:", error);
+    return false;
+  }
+}
+
+export async function sendSMS(
+  phone: string,
+  message: string
+): Promise<boolean> {
+  const provider = await getSMSProvider();
+  console.log(`Sending SMS via provider: ${provider}`);
+
+  if (provider === "twilio") {
+    return sendSMSViaTwilio(phone, message);
+  }
+  return sendSMSViaSSL(phone, message);
 }
 
 /**
@@ -88,4 +165,16 @@ export function normalizePhoneNumber(phone: string): string {
 
 export function isSMSConfigured(): boolean {
   return Boolean(process.env.SSLW_API_TOKEN && process.env.SSLW_SID);
+}
+
+export function isTwilioConfigured(): boolean {
+  return Boolean(
+    process.env.TWILIO_ACCOUNT_SID &&
+    process.env.TWILIO_AUTH_TOKEN &&
+    process.env.TWILIO_PHONE_NUMBER
+  );
+}
+
+export function isAnySMSConfigured(): boolean {
+  return isSMSConfigured() || isTwilioConfigured();
 }
