@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSMSConfigured, isTwilioConfigured, SMSProvider } from "@/lib/sms";
 
-async function verifyAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  if (!token) return null;
-
-  const session = await prisma.session.findUnique({
-    where: { token },
-  });
-
-  if (!session || session.userType !== "ADMIN" || session.expiresAt < new Date()) {
-    return null;
-  }
-
-  return session;
-}
-
 export async function GET() {
-  const session = await verifyAdmin();
-  if (!session) {
+  const session = await getSession();
+  if (!session || session.userType !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -56,8 +40,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await verifyAdmin();
-  if (!session) {
+  const session = await getSession();
+  if (!session || session.userType !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
