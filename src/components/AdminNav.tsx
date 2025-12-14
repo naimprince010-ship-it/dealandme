@@ -120,6 +120,16 @@ export default function AdminNav() {
                         >
                           Analytics
                         </Link>
+                        <Link
+                          href="/admin/sms-settings"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive("/admin/sms-settings")
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          SMS
+                        </Link>
                         <button
               onClick={handleLogout}
               disabled={loggingOut}

@@ -431,3 +431,14 @@ model AppInstall {
   @@index([lastSeenAt])
   @@map("app_installs")
 }
+
+// System settings (key-value store for admin-configurable settings)
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("system_settings")
+}
