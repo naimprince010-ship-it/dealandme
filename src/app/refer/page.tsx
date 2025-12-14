@@ -46,27 +46,67 @@ export default function ReferFriendPage() {
     fetchReferralData();
   }, [router]);
 
-  const handleCopy = () => {
-    if (referralData?.referralCode) {
-      navigator.clipboard.writeText(referralData.referralCode);
+  const getShareText = () => {
+    if (!referralData?.referralCode) return "";
+    return language === "bn" 
+      ? `Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: ${referralData.referralCode}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!\n${referralData.referralLink}`
+      : `Join Dealandme and get restaurant discounts! My referral code: ${referralData.referralCode}. Get 50% OFF on your first order!\n${referralData.referralLink}`;
+  };
+
+  const handleCopy = async () => {
+    if (!referralData?.referralCode) return;
+    
+    const textToCopy = getShareText();
+    
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = textToCopy;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      alert(language === "bn" ? "কপি করতে পারলাম না" : "Could not copy");
     }
   };
 
-  const handleShare = () => {
-    if (referralData?.referralCode && navigator.share) {
-      navigator.share({
-        title: "Dealandme",
-        text: language === "bn" 
-          ? `Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: ${referralData.referralCode}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!`
-          : `Join Dealandme and get restaurant discounts! My referral code: ${referralData.referralCode}. Get 50% OFF on your first order!`,
-        url: referralData.referralLink,
-      });
-    } else if (referralData?.referralCode) {
-      // Fallback to copy
+  const handleNativeShare = async () => {
+    if (!referralData?.referralCode) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Dealandme",
+          text: getShareText(),
+          url: referralData.referralLink,
+        });
+      } catch {
+        // User cancelled or share failed - ignore
+      }
+    } else {
       handleCopy();
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!referralData?.referralCode) return;
+    const text = encodeURIComponent(getShareText());
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const handleMessengerShare = () => {
+    if (!referralData?.referralLink) return;
+    const link = encodeURIComponent(referralData.referralLink);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${link}&quote=${encodeURIComponent(getShareText())}`, "_blank");
   };
 
   if (loading) {
@@ -215,17 +255,53 @@ export default function ReferFriendPage() {
             </div>
           </div>
 
-          {/* Share Now Button */}
-          <button
-            onClick={handleShare}
-            className="w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition-all hover:shadow-xl active:scale-98"
-            style={{
-              background: "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)",
-              fontFamily: "var(--font-bangla), sans-serif"
-            }}
-          >
-            {language === "bn" ? "এখনই শেয়ার করুন" : "Share Now"}
-          </button>
+                    {/* Share Buttons */}
+                    <div className="space-y-3">
+                      {/* WhatsApp Share Button */}
+                      <button
+                        onClick={handleWhatsAppShare}
+                        className="w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition-all hover:shadow-xl active:scale-98 flex items-center justify-center gap-3"
+                        style={{
+                          background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                          fontFamily: "var(--font-bangla), sans-serif"
+                        }}
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        {language === "bn" ? "WhatsApp এ শেয়ার করুন" : "Share on WhatsApp"}
+                      </button>
+
+                      {/* Facebook/Messenger Share Button */}
+                      <button
+                        onClick={handleMessengerShare}
+                        className="w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition-all hover:shadow-xl active:scale-98 flex items-center justify-center gap-3"
+                        style={{
+                          background: "linear-gradient(135deg, #0084FF 0%, #0066CC 100%)",
+                          fontFamily: "var(--font-bangla), sans-serif"
+                        }}
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.301 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111S18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/>
+                        </svg>
+                        {language === "bn" ? "Facebook এ শেয়ার করুন" : "Share on Facebook"}
+                      </button>
+
+                      {/* Native Share Button (for TikTok, SMS, etc.) */}
+                      <button
+                        onClick={handleNativeShare}
+                        className="w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition-all hover:shadow-xl active:scale-98 flex items-center justify-center gap-3"
+                        style={{
+                          background: "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)",
+                          fontFamily: "var(--font-bangla), sans-serif"
+                        }}
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        {language === "bn" ? "অন্যান্য অ্যাপে শেয়ার করুন" : "Share to Other Apps"}
+                      </button>
+                    </div>
 
           {/* Stats (optional) */}
           {referralData && referralData.totalReferrals > 0 && (
