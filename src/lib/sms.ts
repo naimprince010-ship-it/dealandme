@@ -221,12 +221,18 @@ export async function sendSMS(
 
 /**
  * OTP sender - BTRC compliant format: (Brand Name) Message
+ * Includes WebOTP format for automatic SMS reading on Android Chrome
  */
 export async function sendOtpSMS(
   phone: string,
   otp: string
 ): Promise<boolean> {
-  const message = `(Dealandme) Your OTP is ${otp}. Valid for 5 minutes. Do not share with anyone.`;
+  // WebOTP requires origin line at the end for automatic SMS reading
+  // Format: @origin #code
+  const origin = process.env.NEXT_PUBLIC_WEB_ORIGIN || "www.dealandme.com";
+  const message = `(Dealandme) Your OTP is ${otp}. Valid for 5 minutes. Do not share with anyone.
+
+@${origin} #${otp}`;
   return sendSMS(phone, message);
 }
 
