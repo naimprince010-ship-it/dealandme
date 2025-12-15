@@ -301,10 +301,6 @@ export default function CustomerLogin() {
                   </button>
                 </form>
 
-                {/* Test OTP Hint */}
-                <p className="text-center text-gray-500 text-sm mt-6" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                  {t("login", "testOtpHint")}
-                </p>
               </>
             )}
           </div>

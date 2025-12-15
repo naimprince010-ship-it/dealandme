@@ -214,7 +214,7 @@ export default function HomePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("home", "searchPlaceholder")}
-              className="w-full px-4 py-3 pl-10 bg-white/90 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+              className="w-full px-4 py-3 pl-10 bg-white/90 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm text-gray-800 placeholder-gray-400"
               style={{ fontFamily: "var(--font-bangla), sans-serif" }}
             />
             <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
