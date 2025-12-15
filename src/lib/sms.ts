@@ -23,9 +23,10 @@ interface TwilioResponse {
 }
 
 interface MIMSMSResponse {
-  status?: "SUCCESS" | "FAILED" | "success" | "failed";
-  message?: string;
-  smsid?: string;
+  statusCode?: string;
+  status?: string;
+  trxnId?: string;
+  responseResult?: string;
 }
 
 export async function getSMSProvider(): Promise<SMSProvider> {
@@ -137,11 +138,12 @@ async function sendSMSViaTwilio(phone: string, message: string): Promise<boolean
 }
 
 async function sendSMSViaMIM(phone: string, message: string): Promise<boolean> {
+  const username = process.env.MIM_USERNAME;
   const apiKey = process.env.MIM_API_KEY;
-  const senderId = process.env.MIM_SENDER_ID;
+  const senderName = process.env.MIM_SENDER_ID;
 
-  if (!apiKey || !senderId) {
-    console.error("MIM SMS env missing");
+  if (!username || !apiKey || !senderName) {
+    console.error("MIM SMS env missing (need MIM_USERNAME, MIM_API_KEY, MIM_SENDER_ID)");
     return false;
   }
 
@@ -149,34 +151,48 @@ async function sendSMSViaMIM(phone: string, message: string): Promise<boolean> {
 
   try {
     const response = await fetch(
-      "https://api.mimsms.com/api/sendsms",
+      "https://api.mimsms.com/api/SmsSending/SMS",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
-          api_key: apiKey,
-          senderid: senderId,
-          contacts: normalizedPhone,
-          msg: message,
+          UserName: username,
+          Apikey: apiKey,
+          MobileNumber: normalizedPhone,
+          CampaignId: "null",
+          SenderName: senderName,
+          TransactionType: "T",
+          Message: message,
         }),
       }
     );
 
     console.log("MIM SMS HTTP status:", response.status);
-    const data: MIMSMSResponse = await response.json();
-    console.log("MIM SMS response:", JSON.stringify(data));
+    
+    const text = await response.text();
+    console.log("MIM SMS raw response:", text);
+
+    let data: MIMSMSResponse | null = null;
+    try {
+      data = text ? (JSON.parse(text) as MIMSMSResponse) : null;
+    } catch (e) {
+      console.error("MIM SMS response is not valid JSON:", e);
+      return false;
+    }
 
     const success = response.ok && 
-      (data?.status === "SUCCESS" || data?.status === "success");
+      data?.statusCode === "200" &&
+      data?.status?.toLowerCase() === "success";
 
     if (success) {
-      console.log(`SMS sent successfully via MIM SMS to ${normalizedPhone}`);
+      console.log(`SMS sent successfully via MIM SMS to ${normalizedPhone}`, data);
       return true;
     }
 
-    console.error("MIM SMS failed:", JSON.stringify(data));
+    console.error("MIM SMS failed:", data);
     return false;
   } catch (error) {
     console.error("MIM SMS error:", error);
@@ -235,7 +251,11 @@ export function isTwilioConfigured(): boolean {
 }
 
 export function isMIMSMSConfigured(): boolean {
-  return Boolean(process.env.MIM_API_KEY && process.env.MIM_SENDER_ID);
+  return Boolean(
+    process.env.MIM_USERNAME &&
+    process.env.MIM_API_KEY &&
+    process.env.MIM_SENDER_ID
+  );
 }
 
 export function isAnySMSConfigured(): boolean {
