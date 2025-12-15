@@ -128,3 +128,50 @@ export async function PUT(
     );
   }
 }
+
+// DELETE - Soft delete (deactivate) a restaurant
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await getAdmin();
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Unauthorized: Admin login required" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+
+    // Check if restaurant exists
+    const existingRestaurant = await prisma.restaurant.findUnique({
+      where: { id },
+    });
+
+    if (!existingRestaurant) {
+      return NextResponse.json(
+        { error: "Restaurant not found" },
+        { status: 404 }
+      );
+    }
+
+    // Soft delete - just deactivate the restaurant
+    await prisma.restaurant.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    return NextResponse.json({
+      message: "Restaurant deactivated successfully",
+      restaurantId: id,
+    });
+  } catch (error) {
+    console.error("Delete restaurant error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete restaurant" },
+      { status: 500 }
+    );
+  }
+}

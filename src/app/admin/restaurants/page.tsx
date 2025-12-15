@@ -5,6 +5,48 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 
+function DeleteConfirmModal({
+  restaurant,
+  onConfirm,
+  onCancel,
+  isDeleting,
+}: {
+  restaurant: Restaurant;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isDeleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Deactivate Restaurant?
+        </h3>
+        <p className="text-gray-600 mb-4">
+          Are you sure you want to deactivate <strong>{restaurant.name}</strong>? 
+          The restaurant will be hidden from customers but data will be preserved.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {isDeleting ? "Deactivating..." : "Deactivate"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface Offer {
   id: string;
   offerText: string;
@@ -27,6 +69,8 @@ export default function AdminRestaurants() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,6 +105,31 @@ export default function AdminRestaurants() {
       setError("Failed to fetch restaurants");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/restaurants/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      
+      if (res.ok) {
+        setRestaurants(restaurants.map(r => 
+          r.id === deleteTarget.id ? { ...r, isActive: false } : r
+        ));
+        setDeleteTarget(null);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to deactivate restaurant");
+      }
+    } catch {
+      setError("Failed to deactivate restaurant");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -170,12 +239,22 @@ export default function AdminRestaurants() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <Link
-                          href={`/admin/restaurants/${restaurant.id}`}
-                          className="text-indigo-600 hover:text-indigo-800 font-medium"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex gap-3">
+                          <Link
+                            href={`/admin/restaurants/${restaurant.id}`}
+                            className="text-indigo-600 hover:text-indigo-800 font-medium"
+                          >
+                            Edit
+                          </Link>
+                          {restaurant.isActive && (
+                            <button
+                              onClick={() => setDeleteTarget(restaurant)}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -185,6 +264,15 @@ export default function AdminRestaurants() {
           </div>
         </div>
       </main>
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          restaurant={deleteTarget}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 }
