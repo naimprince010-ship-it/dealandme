@@ -150,10 +150,6 @@ async function sendSMSViaMIM(phone: string, message: string): Promise<boolean> {
   const normalizedPhone = normalizePhoneNumber(phone);
 
   try {
-    // Add Basic Auth header in addition to JSON body credentials
-    // Some providers require both for authentication
-    const basicAuth = Buffer.from(`${username}:${apiKey}`).toString("base64");
-    
     const response = await fetch(
       "https://api.mimsms.com/api/SmsSending/SMS",
       {
@@ -161,16 +157,18 @@ async function sendSMSViaMIM(phone: string, message: string): Promise<boolean> {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Basic ${basicAuth}`,
+          Authorization: "bearer",
         },
         body: JSON.stringify({
-          UserName: username,
-          Apikey: apiKey,
+          ApiKey: apiKey,
           MobileNumber: normalizedPhone,
-          CampaignId: "null",
           SenderName: senderName,
+          CampaignName: "",
+          UserName: username,
           TransactionType: "T",
+          MessageId: "",
           Message: message,
+          CampaignId: "null",
         }),
       }
     );
