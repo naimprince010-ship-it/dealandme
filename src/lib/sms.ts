@@ -2,11 +2,12 @@
  * SMS Provider Library - Supports multiple providers
  * - SSL Wireless (Bangladesh local provider)
  * - Twilio (International provider)
+ * - MIM SMS (Bangladesh local provider - no IP whitelist required)
  */
 
 import { prisma } from "@/lib/prisma";
 
-export type SMSProvider = "ssl" | "twilio";
+export type SMSProvider = "ssl" | "twilio" | "mimsms";
 
 interface SSLWirelessResponse {
   status?: "SUCCESS" | "FAILED";
@@ -21,12 +22,19 @@ interface TwilioResponse {
   error_message?: string;
 }
 
+interface MIMSMSResponse {
+  status?: "SUCCESS" | "FAILED" | "success" | "failed";
+  message?: string;
+  smsid?: string;
+}
+
 export async function getSMSProvider(): Promise<SMSProvider> {
   try {
     const setting = await prisma.systemSetting.findUnique({
       where: { key: "sms_provider" },
     });
     if (setting?.value === "twilio") return "twilio";
+    if (setting?.value === "mimsms") return "mimsms";
     return "ssl";
   } catch {
     return "ssl";
@@ -128,6 +136,54 @@ async function sendSMSViaTwilio(phone: string, message: string): Promise<boolean
   }
 }
 
+async function sendSMSViaMIM(phone: string, message: string): Promise<boolean> {
+  const apiKey = process.env.MIM_API_KEY;
+  const senderId = process.env.MIM_SENDER_ID;
+
+  if (!apiKey || !senderId) {
+    console.error("MIM SMS env missing");
+    return false;
+  }
+
+  const normalizedPhone = normalizePhoneNumber(phone);
+
+  try {
+    const response = await fetch(
+      "https://api.mimsms.com/api/sendsms",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          senderid: senderId,
+          contacts: normalizedPhone,
+          msg: message,
+        }),
+      }
+    );
+
+    console.log("MIM SMS HTTP status:", response.status);
+    const data: MIMSMSResponse = await response.json();
+    console.log("MIM SMS response:", JSON.stringify(data));
+
+    const success = response.ok && 
+      (data?.status === "SUCCESS" || data?.status === "success");
+
+    if (success) {
+      console.log(`SMS sent successfully via MIM SMS to ${normalizedPhone}`);
+      return true;
+    }
+
+    console.error("MIM SMS failed:", JSON.stringify(data));
+    return false;
+  } catch (error) {
+    console.error("MIM SMS error:", error);
+    return false;
+  }
+}
+
 export async function sendSMS(
   phone: string,
   message: string
@@ -137,6 +193,9 @@ export async function sendSMS(
 
   if (provider === "twilio") {
     return sendSMSViaTwilio(phone, message);
+  }
+  if (provider === "mimsms") {
+    return sendSMSViaMIM(phone, message);
   }
   return sendSMSViaSSL(phone, message);
 }
@@ -175,6 +234,10 @@ export function isTwilioConfigured(): boolean {
   );
 }
 
+export function isMIMSMSConfigured(): boolean {
+  return Boolean(process.env.MIM_API_KEY && process.env.MIM_SENDER_ID);
+}
+
 export function isAnySMSConfigured(): boolean {
-  return isSMSConfigured() || isTwilioConfigured();
+  return isSMSConfigured() || isTwilioConfigured() || isMIMSMSConfigured();
 }
