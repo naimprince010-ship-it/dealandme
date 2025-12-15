@@ -101,11 +101,10 @@ export default function CustomerLogin() {
     const startWebOTP = async () => {
       try {
         console.log("Starting WebOTP listener...");
-        // @ts-expect-error - WebOTP types not in standard lib
         const otpCredential = await navigator.credentials.get({
           otp: { transport: ["sms"] },
           signal: ac.signal,
-        });
+        } as CredentialRequestOptions);
 
         if (otpCredential && "code" in otpCredential) {
           const code = otpCredential.code as string;
