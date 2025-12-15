@@ -795,6 +795,26 @@ export const translations = {
       bn: "বকেয়া পেমেন্টের কারণে আপনার রেস্টুরেন্টের অফার ব্লক করা হয়েছে। অফার চালু করতে বকেয়া ইনভয়েস পে করুন।",
     },
   },
+
+  // Notifications Page
+  notifications: {
+    title: {
+      en: "Notifications",
+      bn: "নোটিফিকেশন",
+    },
+    noNotifications: {
+      en: "No notifications yet",
+      bn: "এখনো কোনো নোটিফিকেশন নেই",
+    },
+    noNotificationsDesc: {
+      en: "When there are new offers or updates, they will appear here.",
+      bn: "নতুন অফার বা আপডেট থাকলে এখানে দেখাবে।",
+    },
+    manageSettings: {
+      en: "Manage notification settings",
+      bn: "নোটিফিকেশন সেটিংস",
+    },
+  },
 } as const;
 
 /**
