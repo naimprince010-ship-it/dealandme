@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/LanguageContext";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -16,6 +16,7 @@ export default function CustomerLogin() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [autoVerifying, setAutoVerifying] = useState(false);
 
   // Validate phone number: must start with 1 and be 10 digits total (1XXXXXXXXX)
   const isValidPhone = /^1[3-9]\d{8}$/.test(phone);
@@ -50,8 +51,10 @@ export default function CustomerLogin() {
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Function to verify OTP (can be called from form submit or auto-verify)
+  const verifyOtpCode = useCallback(async (otpCode: string) => {
+    if (otpCode.length !== 6 || loading) return;
+    
     setLoading(true);
     setError("");
 
@@ -60,7 +63,7 @@ export default function CustomerLogin() {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone, otp }),
+        body: JSON.stringify({ phone: fullPhone, otp: otpCode }),
       });
 
       const data = await res.json();
@@ -74,8 +77,62 @@ export default function CustomerLogin() {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
+      setAutoVerifying(false);
     }
+  }, [phone, loading, router]);
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await verifyOtpCode(otp);
   };
+
+  // WebOTP API - Auto-read SMS on Android Chrome
+  useEffect(() => {
+    if (step !== "otp") return;
+    
+    // Check if WebOTP is supported (Chrome on Android)
+    if (!("OTPCredential" in window)) {
+      console.log("WebOTP not supported on this browser");
+      return;
+    }
+
+    const ac = new AbortController();
+    
+    const startWebOTP = async () => {
+      try {
+        console.log("Starting WebOTP listener...");
+        // @ts-expect-error - WebOTP types not in standard lib
+        const otpCredential = await navigator.credentials.get({
+          otp: { transport: ["sms"] },
+          signal: ac.signal,
+        });
+
+        if (otpCredential && "code" in otpCredential) {
+          const code = otpCredential.code as string;
+          console.log("WebOTP received code:", code);
+          setOtp(code);
+          setAutoVerifying(true);
+          // Auto-verify after receiving OTP
+          await verifyOtpCode(code);
+        }
+      } catch (err) {
+        // AbortError is expected when component unmounts or timeout
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("WebOTP error:", err);
+        }
+      }
+    };
+
+    startWebOTP();
+
+    // Cleanup: abort WebOTP listener after 2 minutes or on unmount
+    const timeout = setTimeout(() => ac.abort(), 120000);
+    
+    return () => {
+      clearTimeout(timeout);
+      ac.abort();
+    };
+  }, [step, verifyOtpCode]);
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{
@@ -199,6 +256,13 @@ export default function CustomerLogin() {
                   </div>
                 )}
 
+                {/* Auto-verifying message */}
+                {autoVerifying && (
+                  <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm text-center">
+                    OTP auto-detected! Verifying...
+                  </div>
+                )}
+
                 {/* OTP Input Form */}
                 <form onSubmit={handleVerifyOtp}>
                   <div className="mb-6">
@@ -206,6 +270,7 @@ export default function CustomerLogin() {
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
+                      autoComplete="one-time-code"
                       value={otp}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, "");
