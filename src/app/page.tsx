@@ -80,14 +80,16 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 export default function HomePage() {
   const router = useRouter();
   const { language, t } = useLanguage();
-  const [loading, setLoading] = useState(!homeCache);
-  const [userName, setUserName] = useState(homeCache?.userName ?? "");
-  const [userPhotoUrl, setUserPhotoUrl] = useState(homeCache?.userPhotoUrl ?? "");
-  const [categories, setCategories] = useState<HomeCategory[]>(homeCache?.categories ?? []);
-  const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>(homeCache?.featuredOffers ?? []);
-  const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>(homeCache?.popularRestaurants ?? []);
-  const [nearbyRestaurants, setNearbyRestaurants] = useState<PopularRestaurant[]>(homeCache?.nearbyRestaurants ?? []);
-  const [locationEnabled, setLocationEnabled] = useState(homeCache?.locationEnabled ?? false);
+  // Always start with loading = true to ensure auth check completes before showing content
+  // This prevents a race condition where cached content is shown before auth is verified
+  const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("");
+  const [userPhotoUrl, setUserPhotoUrl] = useState("");
+  const [categories, setCategories] = useState<HomeCategory[]>([]);
+  const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>([]);
+  const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>([]);
+  const [nearbyRestaurants, setNearbyRestaurants] = useState<PopularRestaurant[]>([]);
+  const [locationEnabled, setLocationEnabled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchHomeData = useCallback(async (lat?: number, lng?: number, currentUserName?: string, currentUserPhotoUrl?: string, currentLocationEnabled?: boolean) => {
@@ -146,8 +148,15 @@ export default function HomePage() {
 
         const cacheIsValid = homeCache && (Date.now() - homeCache.timestamp) < CACHE_TTL_MS;
         
-        if (cacheIsValid) {
+        if (cacheIsValid && homeCache) {
+          // Auth passed, now safe to use cached data
+          setCategories(homeCache.categories);
+          setFeaturedOffers(homeCache.featuredOffers);
+          setPopularRestaurants(homeCache.popularRestaurants);
+          setNearbyRestaurants(homeCache.nearbyRestaurants);
+          setLocationEnabled(homeCache.locationEnabled);
           setLoading(false);
+          // Refresh data in background
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
