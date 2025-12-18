@@ -47,11 +47,6 @@ export async function GET(request: NextRequest) {
     const redemptions = await prisma.coupon.findMany({
       where: whereClause,
       include: {
-        user: {
-          select: {
-            phone: true,
-          },
-        },
         offer: {
           select: {
             offerText: true,
@@ -76,7 +71,6 @@ export async function GET(request: NextRequest) {
       redemptions: redemptions.map((r) => ({
         id: r.id,
         code: r.code,
-        customerPhone: r.user.phone,
         offerText: r.offer.offerText,
         redeemedAt: r.redeemedAt,
         createdAt: r.createdAt,

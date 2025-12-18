@@ -15,7 +15,6 @@ type ValidationResult =
 
 interface CouponInfo {
   code: string;
-  customerPhone?: string;
   offerText?: string;
   redeemedAt?: string;
 }
@@ -278,12 +277,6 @@ export default function ValidateCouponPage() {
                     <dt className="text-gray-500">{language === "bn" ? "কোড" : "Code"}:</dt>
                     <dd className="font-mono text-gray-900">{couponInfo.code}</dd>
                   </div>
-                  {couponInfo.customerPhone && (
-                    <div className="flex justify-between">
-                      <dt className="text-gray-500">{language === "bn" ? "কাস্টমার" : "Customer"}:</dt>
-                      <dd className="text-gray-900">{couponInfo.customerPhone}</dd>
-                    </div>
-                  )}
                   {couponInfo.offerText && (
                     <div className="flex justify-between">
                       <dt className="text-gray-500">{language === "bn" ? "অফার" : "Offer"}:</dt>

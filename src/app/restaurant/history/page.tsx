@@ -8,7 +8,6 @@ import { useLanguage } from "@/lib/LanguageContext";
 interface Redemption {
   id: string;
   code: string;
-  customerPhone: string;
   offerText: string;
   redeemedAt: string;
   createdAt: string;
@@ -104,12 +103,6 @@ export default function RedemptionHistoryPage() {
     });
   };
 
-  const formatPhone = (phone: string) => {
-    if (phone.length === 10) {
-      return `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`;
-    }
-    return phone;
-  };
 
   if (loading) {
     return (
@@ -230,12 +223,6 @@ export default function RedemptionHistoryPage() {
                         {redemption.offerText}
                       </p>
                       <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          {formatPhone(redemption.customerPhone)}
-                        </span>
                         <span className="flex items-center gap-1">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

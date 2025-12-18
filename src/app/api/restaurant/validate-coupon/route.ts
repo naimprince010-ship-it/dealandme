@@ -34,11 +34,6 @@ export async function POST(request: NextRequest) {
     const coupon = await prisma.coupon.findUnique({
       where: { code: trimmedCode },
       include: {
-        user: {
-          select: {
-            phone: true,
-          },
-        },
         offer: {
           select: {
             offerText: true,
@@ -150,7 +145,6 @@ export async function POST(request: NextRequest) {
       message: "Coupon successfully redeemed!",
       coupon: {
         code: coupon.code,
-        customerPhone: coupon.user.phone,
         offerText: coupon.offer.offerText,
         redeemedAt: now,
       },
