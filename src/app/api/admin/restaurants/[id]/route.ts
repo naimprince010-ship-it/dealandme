@@ -56,7 +56,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, area, description, isActive, newPassword, coverImage, commissionRate, trialEndDate } = body;
+    const { name, area, description, isActive, newPassword, coverImage, coverImagePosition, commissionRate, trialEndDate } = body;
 
     // Check if restaurant exists
     const existingRestaurant = await prisma.restaurant.findUnique({
@@ -70,25 +70,27 @@ export async function PUT(
       );
     }
 
-    // Build update data
-    const updateData: {
-      name?: string;
-      area?: string;
-      description?: string | null;
-      isActive?: boolean;
-      passwordHash?: string;
-      coverImage?: string | null;
-      commissionRate?: number;
-      trialEndDate?: Date | null;
-    } = {};
+        // Build update data
+        const updateData: {
+          name?: string;
+          area?: string;
+          description?: string | null;
+          isActive?: boolean;
+          passwordHash?: string;
+          coverImage?: string | null;
+          coverImagePosition?: string | null;
+          commissionRate?: number;
+          trialEndDate?: Date | null;
+        } = {};
 
-    if (name !== undefined) updateData.name = name;
-    if (area !== undefined) updateData.area = area;
-    if (description !== undefined) updateData.description = description || null;
-    if (isActive !== undefined) updateData.isActive = isActive;
-    if (coverImage !== undefined) updateData.coverImage = coverImage || null;
-    if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
-    if (trialEndDate !== undefined) updateData.trialEndDate = trialEndDate ? new Date(trialEndDate) : null;
+        if (name !== undefined) updateData.name = name;
+        if (area !== undefined) updateData.area = area;
+        if (description !== undefined) updateData.description = description || null;
+        if (isActive !== undefined) updateData.isActive = isActive;
+        if (coverImage !== undefined) updateData.coverImage = coverImage || null;
+        if (coverImagePosition !== undefined) updateData.coverImagePosition = coverImagePosition || "center";
+        if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
+        if (trialEndDate !== undefined) updateData.trialEndDate = trialEndDate ? new Date(trialEndDate) : null;
 
     // Handle password reset
     if (newPassword) {
@@ -103,23 +105,24 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({
-      message: "Restaurant updated successfully",
-      restaurant: {
-        id: restaurant.id,
-        name: restaurant.name,
-        area: restaurant.area,
-        description: restaurant.description,
-        coverImage: restaurant.coverImage,
-        username: restaurant.username,
-        isActive: restaurant.isActive,
-        commissionRate: restaurant.commissionRate,
-        trialEndDate: restaurant.trialEndDate,
-        offer: restaurant.offer,
-        createdAt: restaurant.createdAt,
-        updatedAt: restaurant.updatedAt,
-      },
-    });
+        return NextResponse.json({
+          message: "Restaurant updated successfully",
+          restaurant: {
+            id: restaurant.id,
+            name: restaurant.name,
+            area: restaurant.area,
+            description: restaurant.description,
+            coverImage: restaurant.coverImage,
+            coverImagePosition: restaurant.coverImagePosition,
+            username: restaurant.username,
+            isActive: restaurant.isActive,
+            commissionRate: restaurant.commissionRate,
+            trialEndDate: restaurant.trialEndDate,
+            offer: restaurant.offer,
+            createdAt: restaurant.createdAt,
+            updatedAt: restaurant.updatedAt,
+          },
+        });
   } catch (error) {
     console.error("Update restaurant error:", error);
     return NextResponse.json(

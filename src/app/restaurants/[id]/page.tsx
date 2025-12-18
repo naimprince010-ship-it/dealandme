@@ -14,6 +14,7 @@ interface Restaurant {
   area: string;
   description: string | null;
   coverImage: string | null;
+  coverImagePosition: string | null;
   offer: {
     id: string;
     offerText: string;
@@ -271,12 +272,13 @@ export default function RestaurantDetailPage() {
 
         {/* Restaurant Hero Image */}
         <div className="relative rounded-2xl overflow-hidden mb-4 shadow-lg">
-          {restaurant.coverImage || restaurant.offer?.photoUrl ? (
-            <img
-              src={restaurant.coverImage || restaurant.offer?.photoUrl || ""}
-              alt={restaurant.name}
-              className="w-full h-48 object-cover"
-            />
+                    {restaurant.coverImage || restaurant.offer?.photoUrl ? (
+                      <img
+                        src={restaurant.coverImage || restaurant.offer?.photoUrl || ""}
+                        alt={restaurant.name}
+                        className="w-full h-48 object-cover"
+                        style={{ objectPosition: restaurant.coverImagePosition || "center" }}
+                      />
           ) : (
             <div className="w-full h-48 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
               <span className="text-6xl">🍽️</span>
