@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const SESSION_COOKIE_NAME = "dealbox_session";
+const SESSION_COOKIE_NAMES = {
+  CUSTOMER: "dealbox_customer_session",
+  RESTAURANT: "dealbox_restaurant_session",
+  ADMIN: "dealbox_admin_session",
+};
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  
+  const customerSessionToken = request.cookies.get(SESSION_COOKIE_NAMES.CUSTOMER)?.value;
+  const restaurantSessionToken = request.cookies.get(SESSION_COOKIE_NAMES.RESTAURANT)?.value;
+  const adminSessionToken = request.cookies.get(SESSION_COOKIE_NAMES.ADMIN)?.value;
 
   const customerProtectedPaths = ["/coupons", "/restaurants/", "/my-coupons"];
   const restaurantProtectedPaths = ["/restaurant/dashboard", "/restaurant/validate", "/restaurant/history"];
@@ -21,23 +28,21 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(path)
   );
 
-  if (!sessionToken) {
-    if (isCustomerProtected) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-    if (isRestaurantProtected) {
-      return NextResponse.redirect(new URL("/restaurant/login", request.url));
-    }
-    if (isAdminProtected) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
+  if (isCustomerProtected && !customerSessionToken) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  if (isRestaurantProtected && !restaurantSessionToken) {
+    return NextResponse.redirect(new URL("/restaurant/login", request.url));
+  }
+  if (isAdminProtected && !adminSessionToken) {
+    return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  if (pathname === "/restaurant" && !sessionToken) {
+  if (pathname === "/restaurant" && !restaurantSessionToken) {
     return NextResponse.redirect(new URL("/restaurant/login", request.url));
   }
 
-  if (pathname === "/admin" && !sessionToken) {
+  if (pathname === "/admin" && !adminSessionToken) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
