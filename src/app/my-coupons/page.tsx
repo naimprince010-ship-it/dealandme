@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import { MyCouponsSkeleton, Skeleton } from "@/components/Skeleton";
+import AuthDebugOverlay from "@/components/AuthDebugOverlay";
 
 interface Coupon {
   id: string;
@@ -369,6 +370,7 @@ export default function MyCouponsPage() {
       </main>
 
       <BottomNav />
+      <AuthDebugOverlay />
     </div>
   );
 }

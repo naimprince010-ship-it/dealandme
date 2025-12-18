@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import InstallAppBanner from "@/components/InstallAppBanner";
 import { HomePageSkeleton } from "@/components/Skeleton";
+import AuthDebugOverlay from "@/components/AuthDebugOverlay";
 
 interface HomeCategory {
   id: string;
@@ -495,6 +496,7 @@ export default function HomePage() {
       </main>
 
       <BottomNav />
+      <AuthDebugOverlay />
     </div>
   );
 }

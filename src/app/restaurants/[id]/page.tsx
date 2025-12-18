@@ -7,6 +7,7 @@ import CouponUsageGuide from "@/components/CouponUsageGuide";
 import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 import { useLanguage } from "@/lib/LanguageContext";
+import AuthDebugOverlay from "@/components/AuthDebugOverlay";
 
 interface Restaurant {
   id: string;
@@ -402,6 +403,7 @@ export default function RestaurantDetailPage() {
       </main>
 
       <BottomNav />
+      <AuthDebugOverlay />
     </div>
   );
 }
