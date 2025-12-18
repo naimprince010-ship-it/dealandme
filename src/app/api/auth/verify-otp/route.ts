@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/auth";
+import { generateSessionToken } from "@/lib/auth";
 import { normalizePhoneNumber, isSMSConfigured } from "@/lib/sms";
+
+// Customer session duration: 30 days
+const CUSTOMER_SESSION_DURATION_DAYS = 30;
 
 const MOCK_OTP = "123456";
 const MAX_VERIFY_ATTEMPTS = 3;
@@ -127,15 +130,42 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await createSession(user.id, "CUSTOMER");
+    // Create session token and expiry
+    const token = generateSessionToken();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + CUSTOMER_SESSION_DURATION_DAYS);
 
-    return NextResponse.json({
+    // Save session to database
+    await prisma.session.create({
+      data: {
+        token,
+        userId: user.id,
+        userType: "CUSTOMER",
+        expiresAt,
+      },
+    });
+
+    // Build response with cookie set directly on the response object
+    // This is more explicit than using cookies() from next/headers
+    // and ensures the Set-Cookie header is definitely on this response
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
         phone: user.phone,
       },
     });
+
+    // Set cookie directly on the response object
+    response.cookies.set("dealbox_customer_session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      expires: expiresAt,
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Verify OTP error:", error);
     return NextResponse.json(
