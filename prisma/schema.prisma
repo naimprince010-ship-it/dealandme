@@ -67,13 +67,14 @@ model User {
 
 // Restaurant partners
 model Restaurant {
-  id              String    @id @default(uuid())
-  name            String
-  area            String
-  cuisine         String?
-  description     String?
-  coverImage      String?   @map("cover_image")
-  username        String    @unique
+  id                   String    @id @default(uuid())
+  name                 String
+  area                 String
+  cuisine              String?
+  description          String?
+  coverImage           String?   @map("cover_image")
+  coverImagePosition   String?   @default("center") @map("cover_image_position")
+  username             String    @unique
   passwordHash    String    @map("password_hash")
   isActive        Boolean   @default(true) @map("is_active")
   offPeakBoost    Boolean   @default(false) @map("off_peak_boost")

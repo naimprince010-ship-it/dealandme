@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, area, description, username, password, coverImage, commissionRate, trialEndDate } = await request.json();
+    const { name, area, description, username, password, coverImage, coverImagePosition, commissionRate, trialEndDate } = await request.json();
 
     // Validate required fields
     if (!name || !area || !username || !password) {
@@ -72,19 +72,20 @@ export async function POST(request: NextRequest) {
     // Hash password and create restaurant
     const passwordHash = await hashPassword(password);
 
-    const restaurant = await prisma.restaurant.create({
-      data: {
-        name,
-        area,
-        description: description || null,
-        coverImage: coverImage || null,
-        username,
-        passwordHash,
-        isActive: true,
-        commissionRate: commissionRate ?? 10,
-        trialEndDate: trialEndDate ? new Date(trialEndDate) : null,
-      },
-    });
+        const restaurant = await prisma.restaurant.create({
+          data: {
+            name,
+            area,
+            description: description || null,
+            coverImage: coverImage || null,
+            coverImagePosition: coverImagePosition || "center",
+            username,
+            passwordHash,
+            isActive: true,
+            commissionRate: commissionRate ?? 10,
+            trialEndDate: trialEndDate ? new Date(trialEndDate) : null,
+          },
+        });
 
     return NextResponse.json({
       message: "Restaurant created successfully",

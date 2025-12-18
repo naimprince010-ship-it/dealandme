@@ -25,6 +25,7 @@ interface Restaurant {
   area: string;
   description: string | null;
   coverImage: string | null;
+  coverImagePosition: string | null;
   username: string;
   isActive: boolean;
   offPeakBoost: boolean;
@@ -44,17 +45,25 @@ export default function EditRestaurant() {
   const [success, setSuccess] = useState("");
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    area: "",
-    description: "",
-    isActive: true,
-    newPassword: "",
-    coverImage: "",
-    commissionRate: 10,
-    trialEndDate: "",
-  });
-  const [uploadingImage, setUploadingImage] = useState(false);
+    const [formData, setFormData] = useState({
+      name: "",
+      area: "",
+      description: "",
+      isActive: true,
+      newPassword: "",
+      coverImage: "",
+      coverImagePosition: "center",
+      commissionRate: 10,
+      trialEndDate: "",
+    });
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    const handleImagePositionClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+      const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+      setFormData((prev) => ({ ...prev, coverImagePosition: `${x}% ${y}%` }));
+    };
 
   const [offerData, setOfferData] = useState({
     offerText: "",
@@ -87,16 +96,17 @@ export default function EditRestaurant() {
       if (res.ok) {
         const data = await res.json();
         setRestaurant(data.restaurant);
-        setFormData({
-          name: data.restaurant.name,
-          area: data.restaurant.area,
-          description: data.restaurant.description || "",
-          isActive: data.restaurant.isActive,
-          newPassword: "",
-          coverImage: data.restaurant.coverImage || "",
-          commissionRate: data.restaurant.commissionRate || 10,
-          trialEndDate: data.restaurant.trialEndDate ? data.restaurant.trialEndDate.split("T")[0] : "",
-        });
+                setFormData({
+                  name: data.restaurant.name,
+                  area: data.restaurant.area,
+                  description: data.restaurant.description || "",
+                  isActive: data.restaurant.isActive,
+                  newPassword: "",
+                  coverImage: data.restaurant.coverImage || "",
+                  coverImagePosition: data.restaurant.coverImagePosition || "center",
+                  commissionRate: data.restaurant.commissionRate || 10,
+                  trialEndDate: data.restaurant.trialEndDate ? data.restaurant.trialEndDate.split("T")[0] : "",
+                });
         if (data.restaurant.offer) {
           setOfferData({
             offerText: data.restaurant.offer.offerText,
@@ -309,22 +319,56 @@ export default function EditRestaurant() {
                 This image will be displayed on the restaurant detail page (customer app)
               </p>
               
-              {formData.coverImage && (
-                <div className="mb-3">
-                  <img
-                    src={formData.coverImage}
-                    alt="Cover"
-                    className="w-full h-40 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, coverImage: "" })}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
-                  >
-                    Remove Image
-                  </button>
-                </div>
-              )}
+                            {formData.coverImage && (
+                              <div className="mb-3">
+                                <p className="text-xs text-blue-600 mb-2">
+                                  Click on the image to set the focal point (where the important content is)
+                                </p>
+                                <div 
+                                  className="relative w-full h-40 rounded-lg border-2 border-blue-300 overflow-hidden cursor-crosshair"
+                                  onClick={handleImagePositionClick}
+                                >
+                                  <img
+                                    src={formData.coverImage}
+                                    alt="Cover"
+                                    className="w-full h-full object-cover"
+                                    style={{ objectPosition: formData.coverImagePosition }}
+                                  />
+                                  <div 
+                                    className="absolute w-4 h-4 bg-red-500 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none shadow-lg"
+                                    style={{ 
+                                      left: formData.coverImagePosition.includes('%') 
+                                        ? formData.coverImagePosition.split(' ')[0] 
+                                        : '50%',
+                                      top: formData.coverImagePosition.includes('%') 
+                                        ? formData.coverImagePosition.split(' ')[1] || '50%'
+                                        : '50%'
+                                    }}
+                                  />
+                                </div>
+                                <div className="mt-2 flex items-center justify-between">
+                                  <span className="text-xs text-gray-500">
+                                    Position: {formData.coverImagePosition}
+                                  </span>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setFormData({ ...formData, coverImagePosition: "center" })}
+                                      className="text-xs text-blue-600 hover:text-blue-800"
+                                    >
+                                      Reset to Center
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setFormData({ ...formData, coverImage: "", coverImagePosition: "center" })}
+                                      className="text-xs text-red-600 hover:text-red-800"
+                                    >
+                                      Remove Image
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
               
               <div className="flex items-center gap-3">
                 <label className="flex-1">
