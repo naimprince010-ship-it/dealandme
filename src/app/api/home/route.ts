@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const lat = searchParams.get("lat");
     const lng = searchParams.get("lng");
 
-    const [categories, featuredOffers, popularRestaurants, allRestaurants] = await Promise.all([
+    const [categories, featuredOffers, popularRestaurants] = await Promise.all([
       prisma.homeCategory.findMany({
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },
@@ -60,12 +60,50 @@ export async function GET(request: NextRequest) {
         orderBy: { popularSortOrder: "asc" },
         take: 20,
       }),
-      prisma.restaurant.findMany({
+    ]);
+
+    let nearbyRestaurants: {
+      id: string;
+      name: string;
+      area: string;
+      cuisine: string | null;
+      latitude: number | null;
+      longitude: number | null;
+      offer: {
+        id: string;
+        offerText: string;
+        discountType: string | null;
+        discountValue: number | null;
+        photoUrl: string | null;
+        isActive: boolean;
+      } | null;
+      distance?: number;
+    }[] = [];
+
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      
+      const DELTA = 0.15;
+      const minLat = userLat - DELTA;
+      const maxLat = userLat + DELTA;
+      const minLng = userLng - DELTA;
+      const maxLng = userLng + DELTA;
+
+      const candidateRestaurants = await prisma.restaurant.findMany({
         where: {
           isActive: true,
           paymentOverdue: false,
+          latitude: { gte: minLat, lte: maxLat },
+          longitude: { gte: minLng, lte: maxLng },
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          area: true,
+          cuisine: true,
+          latitude: true,
+          longitude: true,
           offer: {
             where: { isActive: true },
             select: {
@@ -74,18 +112,14 @@ export async function GET(request: NextRequest) {
               discountType: true,
               discountValue: true,
               photoUrl: true,
+              isActive: true,
             },
           },
         },
-      }),
-    ]);
+        take: 50,
+      });
 
-    let nearbyRestaurants: typeof allRestaurants = [];
-    if (lat && lng) {
-      const userLat = parseFloat(lat);
-      const userLng = parseFloat(lng);
-      
-      nearbyRestaurants = allRestaurants
+      nearbyRestaurants = candidateRestaurants
         .filter((r) => r.latitude && r.longitude)
         .map((r) => {
           const distance = calculateDistance(
@@ -94,7 +128,7 @@ export async function GET(request: NextRequest) {
             r.latitude!,
             r.longitude!
           );
-          return { ...r, distance };
+          return { ...r, offer: r.offer || null, distance };
         })
         .sort((a, b) => (a.distance || 0) - (b.distance || 0))
         .slice(0, 10);
