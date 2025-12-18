@@ -4,8 +4,23 @@ import { UserType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
-const SESSION_COOKIE_NAME = "dealbox_session";
 const SESSION_DURATION_HOURS = 24;
+
+const SESSION_COOKIE_NAMES: Record<UserType, string> = {
+  CUSTOMER: "dealbox_customer_session",
+  RESTAURANT: "dealbox_restaurant_session",
+  ADMIN: "dealbox_admin_session",
+};
+
+function getCookieNameForType(userType: UserType): string {
+  return SESSION_COOKIE_NAMES[userType];
+}
+
+function getCookiePathForType(userType: UserType): string {
+  if (userType === "RESTAURANT") return "/restaurant";
+  if (userType === "ADMIN") return "/admin";
+  return "/";
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -49,20 +64,21 @@ export async function createSession(
   });
 
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
+  cookieStore.set(getCookieNameForType(userType), token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     expires: expiresAt,
-    path: "/",
+    path: getCookiePathForType(userType),
   });
 
   return token;
 }
 
-export async function getSession() {
+async function getSessionForType(userType: UserType) {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const cookieName = getCookieNameForType(userType);
+  const token = cookieStore.get(cookieName)?.value;
 
   if (!token) {
     return null;
@@ -72,7 +88,7 @@ export async function getSession() {
     where: { token },
   });
 
-  if (!session || session.expiresAt < new Date()) {
+  if (!session || session.expiresAt < new Date() || session.userType !== userType) {
     if (session) {
       await prisma.session.delete({ where: { id: session.id } });
     }
@@ -82,20 +98,60 @@ export async function getSession() {
   return session;
 }
 
-export async function destroySession(): Promise<void> {
+export async function getSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  
+  for (const userType of Object.keys(SESSION_COOKIE_NAMES) as UserType[]) {
+    const cookieName = getCookieNameForType(userType);
+    const token = cookieStore.get(cookieName)?.value;
+    
+    if (token) {
+      const session = await prisma.session.findUnique({
+        where: { token },
+      });
 
-  if (token) {
-    await prisma.session.deleteMany({ where: { token } });
+      if (session && session.expiresAt >= new Date()) {
+        return session;
+      }
+      
+      if (session) {
+        await prisma.session.delete({ where: { id: session.id } });
+      }
+    }
   }
 
-  cookieStore.delete(SESSION_COOKIE_NAME);
+  return null;
+}
+
+export async function destroySession(userType?: UserType): Promise<void> {
+  const cookieStore = await cookies();
+  
+  if (userType) {
+    const cookieName = getCookieNameForType(userType);
+    const token = cookieStore.get(cookieName)?.value;
+    
+    if (token) {
+      await prisma.session.deleteMany({ where: { token } });
+    }
+    
+    cookieStore.delete(cookieName);
+  } else {
+    for (const type of Object.keys(SESSION_COOKIE_NAMES) as UserType[]) {
+      const cookieName = getCookieNameForType(type);
+      const token = cookieStore.get(cookieName)?.value;
+      
+      if (token) {
+        await prisma.session.deleteMany({ where: { token } });
+      }
+      
+      cookieStore.delete(cookieName);
+    }
+  }
 }
 
 export async function getCustomer() {
-  const session = await getSession();
-  if (!session || session.userType !== "CUSTOMER") {
+  const session = await getSessionForType("CUSTOMER");
+  if (!session) {
     return null;
   }
 
@@ -110,7 +166,7 @@ export async function getCustomer() {
 // This reduces 2 DB round-trips to 1 for better performance
 export async function getCustomerFast() {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const token = cookieStore.get(getCookieNameForType("CUSTOMER"))?.value;
 
   if (!token) {
     return null;
@@ -164,8 +220,8 @@ export async function getCustomerFast() {
 }
 
 export async function getRestaurant() {
-  const session = await getSession();
-  if (!session || session.userType !== "RESTAURANT") {
+  const session = await getSessionForType("RESTAURANT");
+  if (!session) {
     return null;
   }
 
@@ -177,8 +233,8 @@ export async function getRestaurant() {
 }
 
 export async function getAdmin() {
-  const session = await getSession();
-  if (!session || session.userType !== "ADMIN") {
+  const session = await getSessionForType("ADMIN");
+  if (!session) {
     return null;
   }
 
