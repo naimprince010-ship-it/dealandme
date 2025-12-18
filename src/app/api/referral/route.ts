@@ -9,6 +9,8 @@ const DEFAULT_PROMO_SETTINGS = {
   shareTextBn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!",
 };
 
+const DEFAULT_POINTS_PER_REFERRAL = 10;
+
 async function getReferralPromoSettings() {
   try {
     const settings = await prisma.systemSetting.findMany({
@@ -40,6 +42,17 @@ async function getReferralPromoSettings() {
   }
 }
 
+async function getPointsPerReferral(): Promise<number> {
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: "referral_points_per_success" },
+    });
+    return setting ? parseInt(setting.value) || DEFAULT_POINTS_PER_REFERRAL : DEFAULT_POINTS_PER_REFERRAL;
+  } catch {
+    return DEFAULT_POINTS_PER_REFERRAL;
+  }
+}
+
 function generateReferralCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "REF";
@@ -61,7 +74,7 @@ export async function GET() {
 
     let user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { referralCode: true },
+      select: { referralCode: true, points: true },
     });
 
     // Generate referral code if not exists
@@ -82,7 +95,7 @@ export async function GET() {
       user = await prisma.user.update({
         where: { id: userId },
         data: { referralCode: code },
-        select: { referralCode: true },
+        select: { referralCode: true, points: true },
       });
     }
 
@@ -99,6 +112,7 @@ export async function GET() {
       referralLink: `https://www.dealandme.com/login?ref=${user?.referralCode}`,
       totalReferrals: referrals.length,
       bonusAwarded: referrals.filter((r) => r.bonusAwarded).length,
+      points: user?.points || 0,
       promoSettings,
     });
   } catch (error) {
@@ -158,16 +172,35 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get points per referral from admin settings
+    const pointsPerReferral = await getPointsPerReferral();
+
     await prisma.$transaction([
+      // Update referred user
       prisma.user.update({
         where: { id: userId },
         data: { referredBy: referrer.id },
       }),
+      // Create referral record
       prisma.referral.create({
         data: {
           referrerId: referrer.id,
           referredId: userId,
-          bonusAwarded: false,
+          bonusAwarded: true,
+        },
+      }),
+      // Award points to referrer
+      prisma.user.update({
+        where: { id: referrer.id },
+        data: { points: { increment: pointsPerReferral } },
+      }),
+      // Create points transaction record
+      prisma.pointsTransaction.create({
+        data: {
+          userId: referrer.id,
+          amount: pointsPerReferral,
+          source: "REFERRAL",
+          reason: `Referral by code ${referralCode.toUpperCase()}`,
         },
       }),
     ]);
@@ -175,6 +208,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Referral code applied successfully!",
+      pointsAwarded: pointsPerReferral,
     });
   } catch (error) {
     console.error("Apply referral error:", error);

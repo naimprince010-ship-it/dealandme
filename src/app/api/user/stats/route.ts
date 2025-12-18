@@ -41,10 +41,10 @@ export async function GET() {
           referrerId: session.userId,
         },
       }),
-      // Get user's referral code
+      // Get user's referral code and points
       prisma.user.findUnique({
         where: { id: session.userId },
-        select: { referralCode: true },
+        select: { referralCode: true, points: true },
       }),
       // Get all active badges from database
       prisma.badge.findMany({
@@ -84,6 +84,7 @@ export async function GET() {
         restaurantsTried: restaurantsTried.length,
         referralsCount,
         referralCode: user?.referralCode || null,
+        points: user?.points || 0,
       },
       badges,
     });

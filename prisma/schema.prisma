@@ -50,18 +50,20 @@ model User {
   referralCode String?   @unique @map("referral_code")
   referredBy   String?   @map("referred_by")
   photoUrl     String?   @map("photo_url")
+  points       Int       @default(0)
   lastActiveAt DateTime? @map("last_active_at")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-    coupons           Coupon[]
-    favorites         Favorite[]
-    referrals         Referral[] @relation("ReferrerRelation")
-    visitHistory      VisitHistory[]
-    pushSubscriptions PushSubscription[]
-    userBadges        UserBadge[]
-    notifications     Notification[]
+  coupons            Coupon[]
+  favorites          Favorite[]
+  referrals          Referral[] @relation("ReferrerRelation")
+  visitHistory       VisitHistory[]
+  pushSubscriptions  PushSubscription[]
+  userBadges         UserBadge[]
+  notifications      Notification[]
+  pointsTransactions PointsTransaction[]
 
-    @@index([lastActiveAt])
+  @@index([lastActiveAt])
   @@map("users")
 }
 
@@ -451,6 +453,27 @@ enum NotificationType {
   COUPON_EXPIRY
   PROMO
   SYSTEM
+}
+
+// Points source enum for tracking where points came from
+enum PointsSource {
+  REFERRAL
+  ADMIN_ADJUST
+}
+
+// Points transaction history for audit trail
+model PointsTransaction {
+  id        String       @id @default(uuid())
+  userId    String       @map("user_id")
+  amount    Int
+  source    PointsSource
+  reason    String?
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("points_transactions")
 }
 
 // In-app notifications for users
