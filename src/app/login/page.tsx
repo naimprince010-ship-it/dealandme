@@ -18,8 +18,11 @@ export default function CustomerLogin() {
   const [error, setError] = useState("");
   const [autoVerifying, setAutoVerifying] = useState(false);
 
-  // Validate phone number: must start with 1 and be 10 digits total (1XXXXXXXXX)
-  const isValidPhone = /^1[3-9]\d{8}$/.test(phone);
+  // Validate phone number: accepts both 10 digits (1XXXXXXXXX) and 11 digits (01XXXXXXXXX)
+  const isValidPhone = /^0?1[3-9]\d{8}$/.test(phone);
+  
+  // Normalize phone: strip leading 0 if present (01712345678 -> 1712345678)
+  const normalizedPhone = phone.startsWith("0") ? phone.slice(1) : phone;
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +32,8 @@ export default function CustomerLogin() {
     setError("");
 
     try {
-      // Send phone with +880 prefix
-      const fullPhone = `+880${phone}`;
+      // Send phone with +880 prefix (normalizedPhone has leading 0 stripped)
+      const fullPhone = `+880${normalizedPhone}`;
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,7 +62,7 @@ export default function CustomerLogin() {
     setError("");
 
     try {
-      const fullPhone = `+880${phone}`;
+      const fullPhone = `+880${normalizedPhone}`;
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,7 +82,7 @@ export default function CustomerLogin() {
       setLoading(false);
       setAutoVerifying(false);
     }
-  }, [phone, loading, router]);
+  }, [normalizedPhone, loading, router]);
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +197,7 @@ export default function CustomerLogin() {
                         value={phone}
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, "");
-                          if (value.length <= 10) {
+                          if (value.length <= 11) {
                             setPhone(value);
                           }
                         }}
@@ -237,7 +240,7 @@ export default function CustomerLogin() {
                   {t("login", "otpSubtitle")}
                 </p>
                 <p className="text-center text-gray-600 mb-6">
-                  <span className="font-medium">+880{phone}</span>
+                  <span className="font-medium">+880{normalizedPhone}</span>
                   <button
                     type="button"
                     onClick={() => setStep("phone")}
