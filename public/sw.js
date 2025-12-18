@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealandme-v5';
+const CACHE_NAME = 'dealandme-v6';
 const STATIC_ASSETS = [
   '/',
   '/login',
@@ -112,6 +112,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip API requests - always go to network
   if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // Skip admin pages - always go to network (no caching for admin)
+  // This ensures admin always gets fresh JS/CSS and avoids stale bundle issues
+  if (url.pathname.startsWith('/admin')) {
     return;
   }
 
