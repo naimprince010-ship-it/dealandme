@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
 const SESSION_DURATION_HOURS = 24;
+const CUSTOMER_SESSION_DURATION_DAYS = 30;
 
 const SESSION_COOKIE_NAMES: Record<UserType, string> = {
   CUSTOMER: "dealbox_customer_session",
@@ -53,7 +54,12 @@ export async function createSession(
 ): Promise<string> {
   const token = generateSessionToken();
   const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + SESSION_DURATION_HOURS);
+  
+  if (userType === "CUSTOMER") {
+    expiresAt.setDate(expiresAt.getDate() + CUSTOMER_SESSION_DURATION_DAYS);
+  } else {
+    expiresAt.setHours(expiresAt.getHours() + SESSION_DURATION_HOURS);
+  }
 
   await prisma.session.create({
     data: {
