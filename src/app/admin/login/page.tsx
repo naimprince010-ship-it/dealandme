@@ -1,24 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+// Separate component that uses useSearchParams - must be wrapped in Suspense
+function ErrorFromUrl({ onError }: { onError: (error: string) => void }) {
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (urlError) {
+      onError(urlError.replace(/\+/g, " "));
+    }
+  }, [searchParams, onError]);
+  
+  return null;
+}
+
 export default function AdminLogin() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // Check for error from URL (form fallback redirect)
-  useEffect(() => {
-    const urlError = searchParams.get("error");
-    if (urlError) {
-      setError(urlError.replace(/\+/g, " "));
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +67,11 @@ export default function AdminLogin() {
         </div>
 
         <div className="bg-white py-8 px-6 shadow-sm rounded-xl">
+          {/* Check for error from URL query param (form fallback redirect) */}
+          <Suspense fallback={null}>
+            <ErrorFromUrl onError={setError} />
+          </Suspense>
+          
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
               {error}
