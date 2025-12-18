@@ -7,6 +7,7 @@ const REFERRAL_SETTINGS_KEYS = [
   "referral_promo_text_bn",
   "referral_share_text_en",
   "referral_share_text_bn",
+  "referral_points_per_success",
 ];
 
 const DEFAULT_VALUES: Record<string, string> = {
@@ -14,6 +15,7 @@ const DEFAULT_VALUES: Record<string, string> = {
   referral_promo_text_bn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!",
   referral_share_text_en: "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!",
   referral_share_text_bn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!",
+  referral_points_per_success: "10",
 };
 
 export async function GET() {
@@ -38,6 +40,7 @@ export async function GET() {
       promoTextBn: settingsMap.referral_promo_text_bn,
       shareTextEn: settingsMap.referral_share_text_en,
       shareTextBn: settingsMap.referral_share_text_bn,
+      pointsPerReferral: parseInt(settingsMap.referral_points_per_success) || 10,
     });
   } catch (error) {
     console.error("Error fetching referral settings:", error);
@@ -52,13 +55,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { promoTextEn, promoTextBn, shareTextEn, shareTextBn } = await request.json();
+    const { promoTextEn, promoTextBn, shareTextEn, shareTextBn, pointsPerReferral } = await request.json();
 
     const updates = [
       { key: "referral_promo_text_en", value: promoTextEn },
       { key: "referral_promo_text_bn", value: promoTextBn },
       { key: "referral_share_text_en", value: shareTextEn },
       { key: "referral_share_text_bn", value: shareTextBn },
+      { key: "referral_points_per_success", value: pointsPerReferral?.toString() },
     ];
 
     for (const { key, value } of updates) {

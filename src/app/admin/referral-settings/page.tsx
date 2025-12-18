@@ -8,16 +8,18 @@ interface ReferralSettings {
   promoTextBn: string;
   shareTextEn: string;
   shareTextBn: string;
+  pointsPerReferral: number;
 }
 
 export default function ReferralSettingsPage() {
   const router = useRouter();
-  const [settings, setSettings] = useState<ReferralSettings>({
-    promoTextEn: "",
-    promoTextBn: "",
-    shareTextEn: "",
-    shareTextBn: "",
-  });
+    const [settings, setSettings] = useState<ReferralSettings>({
+      promoTextEn: "",
+      promoTextBn: "",
+      shareTextEn: "",
+      shareTextBn: "",
+      pointsPerReferral: 10,
+    });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -143,7 +145,7 @@ export default function ReferralSettingsPage() {
               </div>
             </div>
 
-            <div>
+            <div className="border-b pb-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Share Message Text</h2>
               <p className="text-sm text-gray-500 mb-4">
                 This text is used when sharing via WhatsApp, Facebook, or copying the link.
@@ -176,6 +178,30 @@ export default function ReferralSettingsPage() {
                     placeholder="Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Referral Points</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Points awarded to the referrer when someone uses their referral code.
+              </p>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Points per successful referral
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={settings.pointsPerReferral}
+                  onChange={(e) => setSettings({ ...settings, pointsPerReferral: parseInt(e.target.value) || 0 })}
+                  className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="10"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Points will be added to the referrer&apos;s account when a new user signs up with their code.
+                </p>
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ interface UserStats {
   restaurantsTried: number;
   referralsCount: number;
   referralCode: string | null;
+  points: number;
   badges: Badge[];
   phone?: string;
 }
@@ -410,6 +411,27 @@ export default function ProfilePage() {
               <div className="text-2xl font-bold text-gray-800">{stats?.referralsCount || 0}</div>
               <div className="text-xs text-gray-500">{language === "bn" ? "রেফারেল" : "Referrals"}</div>
             </div>
+          </div>
+        </div>
+
+        {/* Points Display */}
+        <div className="mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-4 mx-0 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-2xl">⭐</span>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">{stats?.points || 0}</div>
+                <div className="text-sm text-white/80">{language === "bn" ? "আপনার পয়েন্ট" : "Your Points"}</div>
+              </div>
+            </div>
+            <Link 
+              href="/refer" 
+              className="px-4 py-2 bg-white/20 rounded-full text-white text-sm font-medium hover:bg-white/30 transition-colors"
+            >
+              {language === "bn" ? "আরো পয়েন্ট পান" : "Earn More"}
+            </Link>
           </div>
         </div>
       </div>

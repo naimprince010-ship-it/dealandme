@@ -18,6 +18,7 @@ interface ReferralData {
   referralLink: string;
   totalReferrals: number;
   bonusAwarded: number;
+  points: number;
   promoSettings?: PromoSettings;
 }
 
@@ -313,20 +314,20 @@ export default function ReferFriendPage() {
                       </button>
                     </div>
 
-          {/* Stats (optional) */}
-          {referralData && referralData.totalReferrals > 0 && (
+          {/* Points Display */}
+          {referralData && (
             <div className="mt-6 pt-4 border-t border-gray-100">
               <div className="flex justify-center gap-8">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-emerald-600">{referralData.totalReferrals}</p>
+                  <p className="text-2xl font-bold text-emerald-600">{referralData.points}</p>
                   <p className="text-sm text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                    {language === "bn" ? "মোট রেফারেল" : "Total Referrals"}
+                    {language === "bn" ? "আপনার পয়েন্ট" : "Your Points"}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-amber-500">{referralData.bonusAwarded}</p>
+                  <p className="text-2xl font-bold text-blue-500">{referralData.totalReferrals}</p>
                   <p className="text-sm text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-                    {language === "bn" ? "বোনাস পেয়েছেন" : "Bonuses Earned"}
+                    {language === "bn" ? "মোট রেফারেল" : "Total Referrals"}
                   </p>
                 </div>
               </div>
