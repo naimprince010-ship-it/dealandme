@@ -65,6 +65,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 interface HomeCache {
   userName: string;
+  userPhotoUrl: string;
   categories: HomeCategory[];
   featuredOffers: FeaturedOffer[];
   popularRestaurants: PopularRestaurant[];
@@ -81,6 +82,7 @@ export default function HomePage() {
   const { language, t } = useLanguage();
   const [loading, setLoading] = useState(!homeCache);
   const [userName, setUserName] = useState(homeCache?.userName ?? "");
+  const [userPhotoUrl, setUserPhotoUrl] = useState(homeCache?.userPhotoUrl ?? "");
   const [categories, setCategories] = useState<HomeCategory[]>(homeCache?.categories ?? []);
   const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>(homeCache?.featuredOffers ?? []);
   const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>(homeCache?.popularRestaurants ?? []);
@@ -88,7 +90,7 @@ export default function HomePage() {
   const [locationEnabled, setLocationEnabled] = useState(homeCache?.locationEnabled ?? false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchHomeData = useCallback(async (lat?: number, lng?: number, currentUserName?: string, currentLocationEnabled?: boolean) => {
+  const fetchHomeData = useCallback(async (lat?: number, lng?: number, currentUserName?: string, currentUserPhotoUrl?: string, currentLocationEnabled?: boolean) => {
     try {
       let url = "/api/home";
       if (lat && lng) {
@@ -109,6 +111,7 @@ export default function HomePage() {
         
         homeCache = {
           userName: currentUserName ?? userName,
+          userPhotoUrl: currentUserPhotoUrl ?? userPhotoUrl,
           categories: newCategories,
           featuredOffers: newFeaturedOffers,
           popularRestaurants: newPopularRestaurants,
@@ -120,7 +123,7 @@ export default function HomePage() {
     } catch (error) {
       console.error("Error fetching home data:", error);
     }
-  }, [userName, locationEnabled]);
+  }, [userName, userPhotoUrl, locationEnabled]);
 
   useEffect(() => {
     async function init() {
@@ -134,8 +137,12 @@ export default function HomePage() {
         }
 
         const phone = authData.user?.phone || "";
-        const newUserName = phone.slice(-4);
+        const rawName = authData.user?.name?.trim() || "";
+        const newUserName = rawName || `...${phone.slice(-4)}`;
+        const newUserPhotoUrl = authData.user?.photoUrl || "";
+        
         setUserName(newUserName);
+        setUserPhotoUrl(newUserPhotoUrl);
 
         const cacheIsValid = homeCache && (Date.now() - homeCache.timestamp) < CACHE_TTL_MS;
         
@@ -145,30 +152,30 @@ export default function HomePage() {
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 setLocationEnabled(true);
-                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, true);
+                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, newUserPhotoUrl, true);
               },
               () => {
-                fetchHomeData(undefined, undefined, newUserName, false);
+                fetchHomeData(undefined, undefined, newUserName, newUserPhotoUrl, false);
               }
             );
           } else {
-            fetchHomeData(undefined, undefined, newUserName, false);
+            fetchHomeData(undefined, undefined, newUserName, newUserPhotoUrl, false);
           }
         } else {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 setLocationEnabled(true);
-                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, true);
+                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, newUserPhotoUrl, true);
                 setLoading(false);
               },
               () => {
-                fetchHomeData(undefined, undefined, newUserName, false);
+                fetchHomeData(undefined, undefined, newUserName, newUserPhotoUrl, false);
                 setLoading(false);
               }
             );
           } else {
-            fetchHomeData(undefined, undefined, newUserName, false);
+            fetchHomeData(undefined, undefined, newUserName, newUserPhotoUrl, false);
             setLoading(false);
           }
         }
@@ -237,12 +244,20 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
+              {userPhotoUrl ? (
+                <img
+                  src={userPhotoUrl}
+                  alt={userName || "User"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              )}
             </div>
-            <h1 className="text-xl font-bold text-gray-800" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
-              {t("home", "greeting")}, {userName ? `...${userName}` : ""}!
+            <h1 className="text-xl font-bold text-gray-800 truncate max-w-[200px]" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              {t("home", "greeting")}{userName ? `, ${userName}` : ""}!
             </h1>
           </div>
                     <button 
