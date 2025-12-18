@@ -63,19 +63,32 @@ const CATEGORY_ICONS: Record<string, string> = {
   pizza: "🍕",
 };
 
+interface HomeCache {
+  userName: string;
+  categories: HomeCategory[];
+  featuredOffers: FeaturedOffer[];
+  popularRestaurants: PopularRestaurant[];
+  nearbyRestaurants: PopularRestaurant[];
+  locationEnabled: boolean;
+  timestamp: number;
+}
+
+let homeCache: HomeCache | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
 export default function HomePage() {
   const router = useRouter();
   const { language, t } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState("");
-  const [categories, setCategories] = useState<HomeCategory[]>([]);
-  const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>([]);
-  const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>([]);
-  const [nearbyRestaurants, setNearbyRestaurants] = useState<PopularRestaurant[]>([]);
-  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [loading, setLoading] = useState(!homeCache);
+  const [userName, setUserName] = useState(homeCache?.userName ?? "");
+  const [categories, setCategories] = useState<HomeCategory[]>(homeCache?.categories ?? []);
+  const [featuredOffers, setFeaturedOffers] = useState<FeaturedOffer[]>(homeCache?.featuredOffers ?? []);
+  const [popularRestaurants, setPopularRestaurants] = useState<PopularRestaurant[]>(homeCache?.popularRestaurants ?? []);
+  const [nearbyRestaurants, setNearbyRestaurants] = useState<PopularRestaurant[]>(homeCache?.nearbyRestaurants ?? []);
+  const [locationEnabled, setLocationEnabled] = useState(homeCache?.locationEnabled ?? false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchHomeData = useCallback(async (lat?: number, lng?: number) => {
+  const fetchHomeData = useCallback(async (lat?: number, lng?: number, currentUserName?: string, currentLocationEnabled?: boolean) => {
     try {
       let url = "/api/home";
       if (lat && lng) {
@@ -84,15 +97,30 @@ export default function HomePage() {
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        setCategories(data.categories || []);
-        setFeaturedOffers(data.featuredOffers || []);
-        setPopularRestaurants(data.popularRestaurants || []);
-        setNearbyRestaurants(data.nearbyRestaurants || []);
+        const newCategories = data.categories || [];
+        const newFeaturedOffers = data.featuredOffers || [];
+        const newPopularRestaurants = data.popularRestaurants || [];
+        const newNearbyRestaurants = data.nearbyRestaurants || [];
+        
+        setCategories(newCategories);
+        setFeaturedOffers(newFeaturedOffers);
+        setPopularRestaurants(newPopularRestaurants);
+        setNearbyRestaurants(newNearbyRestaurants);
+        
+        homeCache = {
+          userName: currentUserName ?? userName,
+          categories: newCategories,
+          featuredOffers: newFeaturedOffers,
+          popularRestaurants: newPopularRestaurants,
+          nearbyRestaurants: newNearbyRestaurants,
+          locationEnabled: currentLocationEnabled ?? locationEnabled,
+          timestamp: Date.now(),
+        };
       }
     } catch (error) {
       console.error("Error fetching home data:", error);
     }
-  }, []);
+  }, [userName, locationEnabled]);
 
   useEffect(() => {
     async function init() {
@@ -106,26 +134,47 @@ export default function HomePage() {
         }
 
         const phone = authData.user?.phone || "";
-        setUserName(phone.slice(-4));
+        const newUserName = phone.slice(-4);
+        setUserName(newUserName);
 
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setLocationEnabled(true);
-              fetchHomeData(position.coords.latitude, position.coords.longitude);
-            },
-            () => {
-              fetchHomeData();
-            }
-          );
+        const cacheIsValid = homeCache && (Date.now() - homeCache.timestamp) < CACHE_TTL_MS;
+        
+        if (cacheIsValid) {
+          setLoading(false);
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                setLocationEnabled(true);
+                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, true);
+              },
+              () => {
+                fetchHomeData(undefined, undefined, newUserName, false);
+              }
+            );
+          } else {
+            fetchHomeData(undefined, undefined, newUserName, false);
+          }
         } else {
-          fetchHomeData();
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                setLocationEnabled(true);
+                fetchHomeData(position.coords.latitude, position.coords.longitude, newUserName, true);
+                setLoading(false);
+              },
+              () => {
+                fetchHomeData(undefined, undefined, newUserName, false);
+                setLoading(false);
+              }
+            );
+          } else {
+            fetchHomeData(undefined, undefined, newUserName, false);
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error("Error initializing:", error);
         router.push("/login");
-      } finally {
-        setLoading(false);
       }
     }
 
