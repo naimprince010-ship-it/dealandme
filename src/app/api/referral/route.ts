@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Generate a unique referral code
 function generateReferralCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "REF";
@@ -12,25 +11,18 @@ function generateReferralCode(): string {
   return code;
 }
 
-// GET - Get user's referral code and stats
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
+    const session = await getSession();
 
-    if (!sessionCookie) {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
+    const userId = session.userId;
 
-    if (session.type !== "CUSTOMER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get user with referral code
     let user = await prisma.user.findUnique({
-      where: { id: session.id },
+      where: { id: userId },
       select: { referralCode: true },
     });
 
@@ -50,15 +42,14 @@ export async function GET() {
       }
 
       user = await prisma.user.update({
-        where: { id: session.id },
+        where: { id: userId },
         data: { referralCode: code },
         select: { referralCode: true },
       });
     }
 
-    // Get referral stats
     const referrals = await prisma.referral.findMany({
-      where: { referrerId: session.id },
+      where: { referrerId: userId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -77,22 +68,15 @@ export async function GET() {
   }
 }
 
-// POST - Apply referral code (called during signup)
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("session");
+    const session = await getSession();
 
-    if (!sessionCookie) {
+    if (!session || session.userType !== "CUSTOMER") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
-
-    if (session.type !== "CUSTOMER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const userId = session.userId;
     const { referralCode } = await request.json();
 
     if (!referralCode) {
@@ -102,9 +86,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already has a referrer
     const currentUser = await prisma.user.findUnique({
-      where: { id: session.id },
+      where: { id: userId },
       select: { referredBy: true },
     });
 
@@ -115,7 +98,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find referrer by code
     const referrer = await prisma.user.findUnique({
       where: { referralCode: referralCode.toUpperCase() },
     });
@@ -127,24 +109,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Can't refer yourself
-    if (referrer.id === session.id) {
+    if (referrer.id === userId) {
       return NextResponse.json(
         { error: "You cannot use your own referral code" },
         { status: 400 }
       );
     }
 
-    // Create referral record and update user
     await prisma.$transaction([
       prisma.user.update({
-        where: { id: session.id },
+        where: { id: userId },
         data: { referredBy: referrer.id },
       }),
       prisma.referral.create({
         data: {
           referrerId: referrer.id,
-          referredId: session.id,
+          referredId: userId,
           bonusAwarded: false,
         },
       }),
