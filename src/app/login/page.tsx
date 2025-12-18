@@ -199,7 +199,7 @@ export default function CustomerLogin() {
                           }
                         }}
                         placeholder={t("login", "phonePlaceholder")}
-                        className="flex-1 px-4 py-3 text-lg focus:outline-none"
+                        className="flex-1 px-4 py-3 text-lg text-gray-900 placeholder-gray-400 focus:outline-none"
                         required
                       />
                     </div>
@@ -278,7 +278,7 @@ export default function CustomerLogin() {
                         }
                       }}
                       placeholder={t("login", "otpPlaceholder")}
-                      className="w-full px-4 py-4 border border-gray-200 rounded-xl text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      className="w-full px-4 py-4 border border-gray-200 rounded-xl text-center text-2xl text-gray-900 placeholder-gray-400 tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       maxLength={6}
                       required
                     />
