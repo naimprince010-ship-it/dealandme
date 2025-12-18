@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     if (!username) {
       if (isFormSubmit) {
-        return NextResponse.redirect(new URL("/admin/login?error=Username+is+required", request.url));
+        return NextResponse.redirect(new URL("/admin/login?error=Username+is+required", request.url), { status: 303 });
       }
       return NextResponse.json(
         { error: "Username is required" },
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     if (!password) {
       if (isFormSubmit) {
-        return NextResponse.redirect(new URL("/admin/login?error=Password+is+required", request.url));
+        return NextResponse.redirect(new URL("/admin/login?error=Password+is+required", request.url), { status: 303 });
       }
       return NextResponse.json(
         { error: "Password is required" },
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (!admin) {
       if (isFormSubmit) {
-        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url));
+        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url), { status: 303 });
       }
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValidPassword) {
       if (isFormSubmit) {
-        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url));
+        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url), { status: 303 });
       }
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -81,9 +81,10 @@ export async function POST(request: NextRequest) {
 
     await createSession(admin.id, "ADMIN");
 
-    // For form submissions, redirect to dashboard
+    // For form submissions, redirect to dashboard with 303 See Other
+    // This ensures browser does a GET request instead of repeating POST
     if (isFormSubmit) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url), { status: 303 });
     }
 
     // For JSON requests, return JSON response
