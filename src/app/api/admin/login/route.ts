@@ -4,16 +4,49 @@ import { verifyPassword, createSession } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
+    const contentType = request.headers.get("content-type") || "";
+    let username: string | null = null;
+    let password: string | null = null;
+    let isFormSubmit = false;
 
-    if (!username || typeof username !== "string") {
+    // Handle both JSON and form submissions
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      username = typeof body.username === "string" ? body.username : null;
+      password = typeof body.password === "string" ? body.password : null;
+    } else if (
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data")
+    ) {
+      isFormSubmit = true;
+      const formData = await request.formData();
+      username = formData.get("username")?.toString() ?? null;
+      password = formData.get("password")?.toString() ?? null;
+    } else {
+      // Fallback: try JSON
+      try {
+        const body = await request.json();
+        username = typeof body.username === "string" ? body.username : null;
+        password = typeof body.password === "string" ? body.password : null;
+      } catch {
+        // leave null; will hit validation error below
+      }
+    }
+
+    if (!username) {
+      if (isFormSubmit) {
+        return NextResponse.redirect(new URL("/admin/login?error=Username+is+required", request.url));
+      }
       return NextResponse.json(
         { error: "Username is required" },
         { status: 400 }
       );
     }
 
-    if (!password || typeof password !== "string") {
+    if (!password) {
+      if (isFormSubmit) {
+        return NextResponse.redirect(new URL("/admin/login?error=Password+is+required", request.url));
+      }
       return NextResponse.json(
         { error: "Password is required" },
         { status: 400 }
@@ -25,6 +58,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!admin) {
+      if (isFormSubmit) {
+        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url));
+      }
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -34,6 +70,9 @@ export async function POST(request: NextRequest) {
     const isValidPassword = await verifyPassword(password, admin.passwordHash);
 
     if (!isValidPassword) {
+      if (isFormSubmit) {
+        return NextResponse.redirect(new URL("/admin/login?error=Invalid+credentials", request.url));
+      }
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -42,6 +81,12 @@ export async function POST(request: NextRequest) {
 
     await createSession(admin.id, "ADMIN");
 
+    // For form submissions, redirect to dashboard
+    if (isFormSubmit) {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    }
+
+    // For JSON requests, return JSON response
     return NextResponse.json({
       success: true,
       admin: {

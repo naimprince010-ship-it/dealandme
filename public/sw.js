@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dealandme-v6';
+const CACHE_NAME = 'dealandme-v7';
 const STATIC_ASSETS = [
   '/',
   '/login',
@@ -118,6 +118,12 @@ self.addEventListener('fetch', (event) => {
   // Skip admin pages - always go to network (no caching for admin)
   // This ensures admin always gets fresh JS/CSS and avoids stale bundle issues
   if (url.pathname.startsWith('/admin')) {
+    return;
+  }
+
+  // Skip Next.js static assets - let browser handle caching with proper versioning
+  // This prevents stale JS bundles from being served which can break React hydration
+  if (url.pathname.startsWith('/_next/')) {
     return;
   }
 

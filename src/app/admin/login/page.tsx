@@ -1,8 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+
+// Separate component that uses useSearchParams - must be wrapped in Suspense
+function ErrorFromUrl({ onError }: { onError: (error: string) => void }) {
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (urlError) {
+      onError(urlError.replace(/\+/g, " "));
+    }
+  }, [searchParams, onError]);
+  
+  return null;
+}
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -53,13 +67,18 @@ export default function AdminLogin() {
         </div>
 
         <div className="bg-white py-8 px-6 shadow-sm rounded-xl">
+          {/* Check for error from URL query param (form fallback redirect) */}
+          <Suspense fallback={null}>
+            <ErrorFromUrl onError={setError} />
+          </Suspense>
+          
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} action="/api/admin/login" method="POST">
             <div className="mb-4">
               <label
                 htmlFor="username"
@@ -70,6 +89,7 @@ export default function AdminLogin() {
               <input
                 type="text"
                 id="username"
+                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter admin username"
@@ -87,6 +107,7 @@ export default function AdminLogin() {
               <input
                 type="password"
                 id="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
