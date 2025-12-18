@@ -148,7 +148,7 @@ export default function HomePage() {
 
         const cacheIsValid = homeCache && (Date.now() - homeCache.timestamp) < CACHE_TTL_MS;
         
-        if (cacheIsValid) {
+        if (cacheIsValid && homeCache) {
           // Auth passed, now safe to use cached data
           setCategories(homeCache.categories);
           setFeaturedOffers(homeCache.featuredOffers);
