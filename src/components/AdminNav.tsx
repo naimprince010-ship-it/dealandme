@@ -130,6 +130,16 @@ export default function AdminNav() {
                         >
                           SMS
                         </Link>
+                        <Link
+                          href="/admin/referral-settings"
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive("/admin/referral-settings")
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          Referral
+                        </Link>
                         <button
               onClick={handleLogout}
               disabled={loggingOut}

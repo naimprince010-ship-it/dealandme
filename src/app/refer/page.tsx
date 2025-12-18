@@ -6,11 +6,19 @@ import { useLanguage } from "@/lib/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LoginBackgroundPattern from "@/components/LoginBackgroundPattern";
 
+interface PromoSettings {
+  promoTextEn: string;
+  promoTextBn: string;
+  shareTextEn: string;
+  shareTextBn: string;
+}
+
 interface ReferralData {
   referralCode: string;
   referralLink: string;
   totalReferrals: number;
   bonusAwarded: number;
+  promoSettings?: PromoSettings;
 }
 
 export default function ReferFriendPage() {
@@ -48,9 +56,11 @@ export default function ReferFriendPage() {
 
   const getShareText = () => {
     if (!referralData?.referralCode) return "";
-    return language === "bn" 
-      ? `Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: ${referralData.referralCode}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!\n${referralData.referralLink}`
-      : `Join Dealandme and get restaurant discounts! My referral code: ${referralData.referralCode}. Get 50% OFF on your first order!\n${referralData.referralLink}`;
+    const shareTemplate = language === "bn" 
+      ? (referralData.promoSettings?.shareTextBn || "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!")
+      : (referralData.promoSettings?.shareTextEn || "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!");
+    const shareText = shareTemplate.replace("{code}", referralData.referralCode);
+    return `${shareText}\n${referralData.referralLink}`;
   };
 
   const handleCopy = async () => {
@@ -228,8 +238,8 @@ export default function ReferFriendPage() {
           {/* Description */}
           <p className="text-gray-600 text-center mb-6" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
             {language === "bn" 
-              ? "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!"
-              : "Share your code. When they place their first order, you both get 50% OFF!"}
+              ? (referralData?.promoSettings?.promoTextBn || "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!")
+              : (referralData?.promoSettings?.promoTextEn || "Share your code. When they place their first order, you both get 50% OFF!")}
           </p>
 
           {/* Referral Code Label */}

@@ -2,6 +2,44 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const DEFAULT_PROMO_SETTINGS = {
+  promoTextEn: "Share your code. When they place their first order, you both get 50% OFF!",
+  promoTextBn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!",
+  shareTextEn: "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!",
+  shareTextBn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!",
+};
+
+async function getReferralPromoSettings() {
+  try {
+    const settings = await prisma.systemSetting.findMany({
+      where: {
+        key: {
+          in: [
+            "referral_promo_text_en",
+            "referral_promo_text_bn",
+            "referral_share_text_en",
+            "referral_share_text_bn",
+          ],
+        },
+      },
+    });
+
+    const settingsMap: Record<string, string> = {};
+    for (const s of settings) {
+      settingsMap[s.key] = s.value;
+    }
+
+    return {
+      promoTextEn: settingsMap.referral_promo_text_en || DEFAULT_PROMO_SETTINGS.promoTextEn,
+      promoTextBn: settingsMap.referral_promo_text_bn || DEFAULT_PROMO_SETTINGS.promoTextBn,
+      shareTextEn: settingsMap.referral_share_text_en || DEFAULT_PROMO_SETTINGS.shareTextEn,
+      shareTextBn: settingsMap.referral_share_text_bn || DEFAULT_PROMO_SETTINGS.shareTextBn,
+    };
+  } catch {
+    return DEFAULT_PROMO_SETTINGS;
+  }
+}
+
 function generateReferralCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "REF";
@@ -48,16 +86,20 @@ export async function GET() {
       });
     }
 
-    const referrals = await prisma.referral.findMany({
-      where: { referrerId: userId },
-      orderBy: { createdAt: "desc" },
-    });
+    const [referrals, promoSettings] = await Promise.all([
+      prisma.referral.findMany({
+        where: { referrerId: userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      getReferralPromoSettings(),
+    ]);
 
     return NextResponse.json({
       referralCode: user?.referralCode,
       referralLink: `https://www.dealandme.com/login?ref=${user?.referralCode}`,
       totalReferrals: referrals.length,
       bonusAwarded: referrals.filter((r) => r.bonusAwarded).length,
+      promoSettings,
     });
   } catch (error) {
     console.error("Get referral error:", error);
