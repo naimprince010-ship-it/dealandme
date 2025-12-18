@@ -1,14 +1,43 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { cookies, headers } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get debug info
+    const headersList = await headers();
+    const cookieStore = await cookies();
+    const host = headersList.get("host") || "unknown";
+    const userAgent = headersList.get("user-agent") || "unknown";
+    
+    // Check for session cookies
+    const hasCustomerCookie = !!cookieStore.get("dealbox_customer_session")?.value;
+    const hasRestaurantCookie = !!cookieStore.get("dealbox_restaurant_session")?.value;
+    const hasAdminCookie = !!cookieStore.get("dealbox_admin_session")?.value;
+    const hasAnySessionCookie = hasCustomerCookie || hasRestaurantCookie || hasAdminCookie;
+    
+    // Check if debug mode is requested
+    const url = new URL(request.url);
+    const debugMode = url.searchParams.get("debug") === "1";
+
     const session = await getSession();
+
+    // Build debug object (only included if debugMode is true)
+    const debug = debugMode ? {
+      host,
+      userAgent: userAgent.substring(0, 100), // Truncate for readability
+      hasCustomerCookie,
+      hasRestaurantCookie,
+      hasAdminCookie,
+      hasAnySessionCookie,
+      sessionFound: !!session,
+      sessionUserType: session?.userType || null,
+    } : undefined;
 
     if (!session) {
       return NextResponse.json(
-        { authenticated: false },
+        { authenticated: false, debug },
         { status: 401 }
       );
     }
@@ -62,7 +91,7 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json(
-        { authenticated: false },
+        { authenticated: false, debug },
         { status: 401 }
       );
     }
@@ -70,6 +99,7 @@ export async function GET() {
     return NextResponse.json({
       authenticated: true,
       user,
+      debug,
     });
   } catch (error) {
     console.error("Auth check error:", error);
