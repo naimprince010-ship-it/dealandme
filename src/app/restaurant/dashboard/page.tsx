@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { getOffPeakStatus } from "@/lib/offer";
+import InstallAppBanner from "@/components/InstallAppBanner";
 
 interface Restaurant {
   id: string;
@@ -181,6 +182,9 @@ export default function RestaurantDashboard() {
       </div>
 
       <main className="px-4 space-y-4">
+        {/* Install App Banner */}
+        <InstallAppBanner />
+
         {/* Daily Summary Stats */}
         {dailyStats && (
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-sm">
