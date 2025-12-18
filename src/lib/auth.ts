@@ -17,8 +17,9 @@ function getCookieNameForType(userType: UserType): string {
 }
 
 function getCookiePathForType(userType: UserType): string {
-  if (userType === "RESTAURANT") return "/restaurant";
-  if (userType === "ADMIN") return "/admin";
+  // All cookies use root path "/" because API routes are at /api/*
+  // The separate cookie names prevent conflicts between user types
+  void userType;
   return "/";
 }
 
