@@ -5,6 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 
+interface Area {
+  id: string;
+  nameEn: string;
+  nameBn: string;
+}
+
 interface Offer {
   id: string;
   offerText: string;
@@ -39,11 +45,12 @@ export default function EditRestaurant() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+    const [areas, setAreas] = useState<Area[]>([]);
 
     const [formData, setFormData] = useState({
       name: "",
@@ -70,25 +77,31 @@ export default function EditRestaurant() {
     isActive: true,
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        const data = await res.json();
+    useEffect(() => {
+      const checkAuth = async () => {
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
 
-        if (!data.authenticated || data.user?.type !== "ADMIN") {
+          if (!data.authenticated || data.user?.type !== "ADMIN") {
+            router.push("/admin/login");
+            return;
+          }
+
+          const areasRes = await fetch("/api/admin/areas");
+          if (areasRes.ok) {
+            const areasData = await areasRes.json();
+            setAreas(areasData.areas || []);
+          }
+
+          fetchRestaurant();
+        } catch {
           router.push("/admin/login");
-          return;
         }
+      };
 
-        fetchRestaurant();
-      } catch {
-        router.push("/admin/login");
-      }
-    };
-
-    checkAuth();
-  }, [router, id]);
+      checkAuth();
+    }, [router, id]);
 
   const fetchRestaurant = async () => {
     try {
@@ -284,19 +297,30 @@ export default function EditRestaurant() {
               />
             </div>
 
-            <div>
-              <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
-                Area *
-              </label>
-              <input
-                type="text"
-                id="area"
-                required
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              />
-            </div>
+                        <div>
+                          <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
+                            Area *
+                          </label>
+                          <select
+                            id="area"
+                            required
+                            value={formData.area}
+                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          >
+                            <option value="">Select an area</option>
+                            {areas.map((area) => (
+                              <option key={area.id} value={area.nameEn}>
+                                {area.nameEn} ({area.nameBn})
+                              </option>
+                            ))}
+                          </select>
+                          {areas.length === 0 && (
+                            <p className="text-sm text-amber-600 mt-1">
+                              No areas found. <Link href="/admin/areas" className="underline">Add areas first</Link>
+                            </p>
+                          )}
+                        </div>
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
