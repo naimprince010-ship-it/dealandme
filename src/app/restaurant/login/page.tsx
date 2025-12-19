@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import InstallAppBanner from "@/components/InstallAppBanner";
 
@@ -154,16 +153,6 @@ export default function RestaurantLogin() {
               </button>
             </form>
 
-          </div>
-
-          {/* Back to Home Link */}
-          <div className="mt-6 text-center">
-            <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 text-sm font-medium">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              {language === "bn" ? "হোমে ফিরে যান" : "Back to Home"}
-            </Link>
           </div>
         </div>
       </div>
