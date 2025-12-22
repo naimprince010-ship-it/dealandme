@@ -23,6 +23,9 @@ interface Restaurant {
     photoUrl?: string | null;
     discountType?: string | null;
     discountValue?: number | null;
+    title?: string | null;
+    description?: string | null;
+    terms?: string | null;
   } | null;
 }
 
@@ -320,9 +323,25 @@ export default function RestaurantDetailPage() {
               <h2 className="text-base font-bold text-emerald-700 mb-2" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
                 {language === "bn" ? "বর্তমান অফার" : "Current Offer"}
               </h2>
-              <p className="text-emerald-600" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+              <p className="text-emerald-600 font-medium" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
                 🎁 {restaurant.offer.offerText}
               </p>
+              
+              {/* Offer Description */}
+              {restaurant.offer.description && (
+                <p className="text-gray-700 text-sm mt-3 whitespace-pre-line" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                  {restaurant.offer.description}
+                </p>
+              )}
+              
+              {/* Offer Terms */}
+              {restaurant.offer.terms && (
+                <div className="mt-3 pt-3 border-t border-emerald-200">
+                  <p className="text-xs text-gray-500" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
+                    <span className="font-medium">{language === "bn" ? "শর্তাবলি:" : "Terms:"}</span> {restaurant.offer.terms}
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
