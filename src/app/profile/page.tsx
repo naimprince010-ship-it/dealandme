@@ -207,7 +207,7 @@ export default function ProfilePage() {
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert(language === "bn" ? "ফাইল সাইজ ৫MB এর কম হতে হবে" : "File size must be less than 5MB");
+      alert(language === "bn" ? "ফাইল সাইজ 5MB এর কম হতে হবে" : "File size must be less than 5MB");
       return;
     }
 

@@ -274,7 +274,7 @@ export default function RestaurantDashboard() {
               </h3>
               <p className="text-orange-700 text-xs mt-1">
                 {language === "bn" 
-                  ? "৩-৬টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
+                  ? "3-6 টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
                   : "Get priority visibility during 3-6pm"}
               </p>
               {offPeakBoost && (

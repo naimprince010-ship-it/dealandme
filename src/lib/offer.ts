@@ -49,7 +49,7 @@ export function getOffPeakStatus(
       : "Boost Scheduled (Next: Tomorrow 3 PM)",
     labelBn: isActive
       ? "বুস্ট এখন সক্রিয়"
-      : "বুস্ট নির্ধারিত (পরবর্তী: আগামীকাল ৩টা)",
+      : "বুস্ট নির্ধারিত (পরবর্তী: আগামীকাল 3টা)",
   };
 }
 
@@ -135,8 +135,8 @@ export function formatOfferTextBn(offer: {
 
 // Quick suggestion chips for offer title
 export const TITLE_SUGGESTIONS = [
-  { en: "Flat 50% Off", bn: "৫০% ছাড়" },
-  { en: "Buy 1 Get 1", bn: "১টা কিনলে ১টা ফ্রি" },
+  { en: "Flat 50% Off", bn: "50% ছাড়" },
+  { en: "Buy 1 Get 1", bn: "1টা কিনলে 1টা ফ্রি" },
   { en: "Free Drinks", bn: "ফ্রি ড্রিংকস" },
   { en: "Lunch Offer", bn: "লাঞ্চ অফার" },
 ];
@@ -145,6 +145,6 @@ export const TITLE_SUGGESTIONS = [
 export const TERMS_SUGGESTIONS = [
   { en: "Dine-in Only", bn: "শুধু ডাইন-ইন" },
   { en: "No Cash Refund", bn: "ক্যাশ রিফান্ড নেই" },
-  { en: "Valid for 2 People", bn: "২ জনের জন্য প্রযোজ্য" },
+  { en: "Valid for 2 People", bn: "2 জনের জন্য প্রযোজ্য" },
   { en: "Limited Time Only", bn: "সীমিত সময়ের জন্য" },
 ];

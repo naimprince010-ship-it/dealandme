@@ -139,7 +139,7 @@ export default function ReferralSettingsPage() {
                     onChange={(e) => setSettings({ ...settings, promoTextBn: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     rows={2}
-                    placeholder="আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!"
+                    placeholder="আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই 50% ছাড় পাবেন!"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function ReferralSettingsPage() {
                     onChange={(e) => setSettings({ ...settings, shareTextBn: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     rows={3}
-                    placeholder="Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!"
+                    placeholder="Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে 50% ছাড় পাবেন!"
                   />
                 </div>
               </div>

@@ -12,7 +12,7 @@ const REFERRAL_SETTINGS_KEYS = [
 
 const DEFAULT_VALUES: Record<string, string> = {
   referral_promo_text_en: "Share your code. When they place their first order, you both get 50% OFF!",
-  referral_promo_text_bn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!",
+  referral_promo_text_bn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই 50% ছাড় পাবেন!",
   referral_share_text_en: "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!",
   referral_share_text_bn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!",
   referral_points_per_success: "10",
