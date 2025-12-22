@@ -40,7 +40,7 @@ export const translations = {
           },
           countryCode: {
             en: "+880",
-            bn: "+৮৮০",
+            bn: "+880",
           },
           phoneLabel: {
             en: "Phone Number",
@@ -48,7 +48,7 @@ export const translations = {
           },
           phonePlaceholder: {
             en: "1XXXXXXXXX",
-            bn: "১XXXXXXXXX",
+            bn: "1XXXXXXXXX",
           },
       sendOtp: {
         en: "Send OTP",
@@ -64,7 +64,7 @@ export const translations = {
       },
       otpSubtitle: {
         en: "Enter the 6-digit code sent to your phone",
-        bn: "আপনার ফোনে পাঠানো ৬ সংখ্যার কোড দিন",
+        bn: "আপনার ফোনে পাঠানো 6 সংখ্যার কোড দিন",
       },
       otpSentTo: {
         en: "OTP sent to",
@@ -80,7 +80,7 @@ export const translations = {
       },
       otpPlaceholder: {
         en: "Enter 6-digit OTP",
-        bn: "৬ সংখ্যার OTP দিন",
+        bn: "6 সংখ্যার OTP দিন",
       },
       verifyOtp: {
         en: "Verify OTP",
@@ -92,7 +92,7 @@ export const translations = {
       },
       testOtpHint: {
         en: "For testing, use OTP: 123456",
-        bn: "টেস্টিং এর জন্য OTP: ১২৩৪৫৬ ব্যবহার করুন",
+        bn: "টেস্টিং এর জন্য OTP: 123456 ব্যবহার করুন",
       },
       termsText: {
         en: "By proceeding, you agree to our terms and conditions.",
@@ -192,7 +192,7 @@ export const translations = {
     },
     note: {
       en: "Note: Each coupon is valid for 3 hours and can only be used once.",
-      bn: "নোট: প্রতিটি কুপন ৩ ঘন্টা বৈধ এবং একবারই ব্যবহার করা যাবে।",
+      bn: "নোট: প্রতিটি কুপন 3 ঘন্টা বৈধ এবং একবারই ব্যবহার করা যাবে।",
     },
   },
 

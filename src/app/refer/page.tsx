@@ -58,7 +58,7 @@ export default function ReferFriendPage() {
   const getShareText = () => {
     if (!referralData?.referralCode) return "";
     const shareTemplate = language === "bn" 
-      ? (referralData.promoSettings?.shareTextBn || "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!")
+      ? (referralData.promoSettings?.shareTextBn || "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে 50% ছাড় পাবেন!")
       : (referralData.promoSettings?.shareTextEn || "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!");
     const shareText = shareTemplate.replace("{code}", referralData.referralCode);
     return `${shareText}\n${referralData.referralLink}`;
@@ -239,7 +239,7 @@ export default function ReferFriendPage() {
           {/* Description */}
           <p className="text-gray-600 text-center mb-6" style={{ fontFamily: "var(--font-bangla), sans-serif" }}>
             {language === "bn" 
-              ? (referralData?.promoSettings?.promoTextBn || "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!")
+              ? (referralData?.promoSettings?.promoTextBn || "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই 50% ছাড় পাবেন!")
               : (referralData?.promoSettings?.promoTextEn || "Share your code. When they place their first order, you both get 50% OFF!")}
           </p>
 

@@ -169,7 +169,7 @@ export default function EditOfferPage() {
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError(language === "bn" ? "ফাইল সাইজ ৫MB এর কম হতে হবে" : "File size must be less than 5MB");
+      setError(language === "bn" ? "ফাইল সাইজ 5MB এর কম হতে হবে" : "File size must be less than 5MB");
       return;
     }
 
@@ -381,7 +381,7 @@ export default function EditOfferPage() {
                   </div>
                   <p className="mt-1.5 text-xs text-gray-500">
                     {language === "bn"
-                      ? "উদাহরণ: ২০% ছাড় (সর্বোচ্চ ৳১০০)"
+                      ? "উদাহরণ: 20% ছাড় (সর্বোচ্চ ৳100)"
                       : "Example: 20% off (Up to ৳100)"}
                   </p>
                 </div>
@@ -432,7 +432,7 @@ export default function EditOfferPage() {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder={
-                    language === "bn" ? "যেমন: ফ্ল্যাট ৫০% ছাড়" : "e.g., Flat 50% Off"
+                    language === "bn" ? "যেমন: ফ্ল্যাট 50% ছাড়" : "e.g., Flat 50% Off"
                   }
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
                 />
@@ -537,7 +537,7 @@ export default function EditOfferPage() {
                         : "Tap to select an image"}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      {language === "bn" ? "সর্বোচ্চ ৫MB" : "Max 5MB"}
+                      {language === "bn" ? "সর্বোচ্চ 5MB" : "Max 5MB"}
                     </p>
                   </>
                 )}
@@ -602,7 +602,7 @@ export default function EditOfferPage() {
                 </h3>
                 <p className="text-orange-700 text-xs mt-1">
                   {language === "bn" 
-                    ? "৩-৬টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
+                    ? "3-6টায় আপনার রেস্টুরেন্ট সবার আগে দেখাবে" 
                     : "Get priority visibility during 3-6pm"}
                 </p>
                 {offPeakBoost && (

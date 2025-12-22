@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 
 const DEFAULT_PROMO_SETTINGS = {
   promoTextEn: "Share your code. When they place their first order, you both get 50% OFF!",
-  promoTextBn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই ৫০% ছাড় পাবেন!",
+  promoTextBn: "আপনার কোড শেয়ার করুন। তারা প্রথম অর্ডার করলে, আপনি দুজনেই 50% ছাড় পাবেন!",
   shareTextEn: "Join Dealandme and get restaurant discounts! My referral code: {code}. Get 50% OFF on your first order!",
-  shareTextBn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে ৫০% ছাড় পাবেন!",
+  shareTextBn: "Dealandme এ জয়েন করুন এবং রেস্টুরেন্ট ডিসকাউন্ট পান! আমার রেফারেল কোড: {code}। প্রথম অর্ডারে 50% ছাড় পাবেন!",
 };
 
 const DEFAULT_POINTS_PER_REFERRAL = 10;
