@@ -45,6 +45,35 @@ export default function BottomNav() {
       ),
     },
     {
+      href: "/flights",
+      labelKey: "flights",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.5 19.5l19-7.5-19-7.5 4.5 7.5-4.5 7.5zm4.5-7.5h14" />
+        </svg>
+      ),
+      iconActive: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M2 13.5V10.5L14 8L19 2L21 3L18 9L22 10.5V13.5L18 15L21 21L19 22L14 16L2 13.5z" />
+        </svg>
+      ),
+    },
+    {
+      href: "/hotels",
+      labelKey: "hotels",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9.75L12 3l9 6.75V21H3V9.75z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 21V12h6v9" />
+        </svg>
+      ),
+      iconActive: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+      ),
+    },
+    {
       href: "/my-coupons",
       labelKey: "myCoupons",
       icon: (

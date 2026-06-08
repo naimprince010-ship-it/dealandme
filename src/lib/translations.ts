@@ -370,6 +370,14 @@ export const translations = {
         en: "My Coupons",
         bn: "আমার কুপন",
       },
+      flights: {
+        en: "Flights",
+        bn: "ফ্লাইট",
+      },
+      hotels: {
+        en: "Hotels",
+        bn: "হোটেল",
+      },
       logout: {
         en: "Logout",
         bn: "লগআউট",
@@ -397,6 +405,14 @@ export const translations = {
       search: {
         en: "Search",
         bn: "খুঁজুন",
+      },
+      flights: {
+        en: "Flights",
+        bn: "ফ্লাইট",
+      },
+      hotels: {
+        en: "Hotels",
+        bn: "হোটেল",
       },
       myCoupons: {
         en: "Coupons",

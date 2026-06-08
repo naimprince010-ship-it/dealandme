@@ -10,6 +10,9 @@ interface Restaurant {
   area: string;
   cuisine?: string | null;
   description: string | null;
+  rating?: number;
+  reviewCount?: number;
+  distance?: string;
   offer: {
     id: string;
     offerText: string;
@@ -174,6 +177,22 @@ export default function RestaurantList({
                           style={{ fontFamily: "var(--font-bangla), sans-serif" }}
                         >
                           🎁 {restaurant.offer.offerText}
+                        </div>
+                      )}
+                      {(restaurant.rating || restaurant.distance) && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                          {restaurant.rating ? (
+                            <span className="inline-flex items-center gap-1">
+                              <span className="text-amber-400">★</span>
+                              <span className="font-semibold text-gray-700">{restaurant.rating.toFixed(1)}</span>
+                            </span>
+                          ) : null}
+                          {restaurant.distance ? (
+                            <span className="inline-flex items-center gap-1">
+                              <span>📍</span>
+                              <span>{restaurant.distance}</span>
+                            </span>
+                          ) : null}
                         </div>
                       )}
                     </div>

@@ -47,6 +47,9 @@ interface Restaurant {
   area: string;
   cuisine?: string | null;
   description: string | null;
+  rating?: number;
+  reviewCount?: number;
+  distance?: string;
   offer: {
     id: string;
     offerText: string;
@@ -70,6 +73,8 @@ interface Recommendation {
   name: string;
   area: string;
   cuisine?: string | null;
+  rating?: number;
+  distance?: string;
   offer: { offerText: string; isActive: boolean; photoUrl?: string | null } | null;
   score: number;
   isFavorite: boolean;
